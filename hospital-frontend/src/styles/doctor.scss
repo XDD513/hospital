@@ -1,0 +1,325 @@
+/* 医生端统一样式 */
+
+/* 主题颜色 */
+$doctor-primary: #52c41a;
+$doctor-secondary: #13c2c2;
+$doctor-success: #52c41a;
+$doctor-warning: #faad14;
+$doctor-danger: #f5222d;
+$doctor-info: #1890ff;
+
+/* 卡片样式 */
+.doctor-card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #f0f0f0;
+
+    h2, h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #262626;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .el-icon {
+        color: $doctor-primary;
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+  }
+
+  .card-body {
+    padding: 24px;
+  }
+}
+
+/* 统计卡片 */
+.doctor-stat-card {
+  background: linear-gradient(135deg, $doctor-primary 0%, #73d13d 100%);
+  border-radius: 12px;
+  padding: 24px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(82, 196, 26, 0.2);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(82, 196, 26, 0.3);
+  }
+
+  &.blue {
+    background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+
+    &:hover {
+      box-shadow: 0 8px 24px rgba(24, 144, 255, 0.3);
+    }
+  }
+
+  &.green {
+    background: linear-gradient(135deg, $doctor-success 0%, #73d13d 100%);
+    box-shadow: 0 2px 8px rgba(82, 196, 26, 0.2);
+
+    &:hover {
+      box-shadow: 0 8px 24px rgba(82, 196, 26, 0.3);
+    }
+  }
+
+  &.orange {
+    background: linear-gradient(135deg, $doctor-warning 0%, #ffc53d 100%);
+    box-shadow: 0 2px 8px rgba(250, 173, 20, 0.2);
+
+    &:hover {
+      box-shadow: 0 8px 24px rgba(250, 173, 20, 0.3);
+    }
+  }
+
+  &.red {
+    background: linear-gradient(135deg, $doctor-danger 0%, #ff4d4f 100%);
+    box-shadow: 0 2px 8px rgba(245, 34, 45, 0.2);
+
+    &:hover {
+      box-shadow: 0 8px 24px rgba(245, 34, 45, 0.3);
+    }
+  }
+
+  .stat-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .stat-icon {
+      font-size: 48px;
+      opacity: 0.9;
+    }
+
+    .stat-info {
+      text-align: right;
+
+      .stat-number {
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 4px;
+      }
+
+      .stat-label {
+        font-size: 14px;
+        opacity: 0.9;
+      }
+    }
+  }
+}
+
+/* 表格样式 */
+.doctor-table {
+  .el-table {
+    border-radius: 8px;
+    overflow: hidden;
+
+    th {
+      background-color: #fafafa;
+      color: #262626;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    td {
+      font-size: 14px;
+      color: #595959;
+    }
+
+    .el-table__row {
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: #f5f5f5;
+      }
+    }
+  }
+}
+
+/* 操作按钮组 */
+.doctor-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  .el-button {
+    margin: 0;
+  }
+}
+
+/* 搜索框 */
+.doctor-search {
+  .el-input {
+    width: 280px;
+
+    .el-input__wrapper {
+      border-radius: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+
+      &:hover {
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+      }
+
+      &.is-focus {
+        box-shadow: 0 2px 12px rgba(82, 196, 26, 0.2);
+      }
+    }
+  }
+}
+
+/* 分页样式 */
+.doctor-pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding: 16px 0;
+
+  .el-pagination {
+    .el-pager li.is-active {
+      background-color: $doctor-primary;
+      color: #fff;
+    }
+
+    .btn-next,
+    .btn-prev {
+      &:hover {
+        color: $doctor-primary;
+      }
+    }
+  }
+}
+
+/* 状态标签 */
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  &.success {
+    background-color: #f6ffed;
+    color: $doctor-success;
+    border: 1px solid #b7eb8f;
+
+    .status-dot {
+      background-color: $doctor-success;
+    }
+  }
+
+  &.warning {
+    background-color: #fffbe6;
+    color: $doctor-warning;
+    border: 1px solid #ffe58f;
+
+    .status-dot {
+      background-color: $doctor-warning;
+    }
+  }
+
+  &.danger {
+    background-color: #fff1f0;
+    color: $doctor-danger;
+    border: 1px solid #ffccc7;
+
+    .status-dot {
+      background-color: $doctor-danger;
+    }
+  }
+
+  &.info {
+    background-color: #e6f7ff;
+    color: $doctor-info;
+    border: 1px solid #91d5ff;
+
+    .status-dot {
+      background-color: $doctor-info;
+    }
+  }
+}
+
+/* 空状态 */
+.doctor-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #8c8c8c;
+
+  .empty-icon {
+    font-size: 64px;
+    color: #d9d9d9;
+    margin-bottom: 16px;
+  }
+
+  .empty-text {
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .doctor-card {
+    .card-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+
+      .header-actions {
+        width: 100%;
+        flex-direction: column;
+
+        .doctor-search .el-input {
+          width: 100%;
+        }
+      }
+    }
+  }
+
+  .doctor-stat-card {
+    .stat-content {
+      .stat-icon {
+        font-size: 36px;
+      }
+
+      .stat-info .stat-number {
+        font-size: 24px;
+      }
+    }
+  }
+}
+

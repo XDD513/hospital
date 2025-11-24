@@ -1,0 +1,10 @@
+frontend:
+  api-base-url: http://localhost:8080/api
+  ws-base-url: ws://localhost:8080/ws
+  request-timeout: 10000
+  message-duration: 3000
+  default-avatars:
+    patient: https://api.dicebear.com/7.x/thumbs/svg?seed=patient
+    doctor: https://api.dicebear.com/7.x/thumbs/svg?seed=doctor
+    system: https://api.dicebear.com/7.x/shapes/svg?seed=assistant
+
