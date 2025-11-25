@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>中医体质辨识系统 — 官网首页</title>
+    <meta name="description" content="面向患者与医疗机构的中医体质与预约平台：首页包含清晰价值主张、信任与社证、功能与流程、CTA 多点布局，帮助用户快速上手。" />
+    <meta name="keywords" content="中医, 医疗预约, 体质测试, 健康管理, 药膳, 穴位, 远程问诊" />
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.4.1/dist/index.css" />
+    <style>
+      body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f5f7fa; color: #1f2937; }
+      a { text-decoration: none; color: inherit; }
+      .container { max-width: 1200px; margin: 0 auto; padding: 16px; }
+      .nav { position: sticky; top:0; z-index: 50; background: #fff; border-bottom: 1px solid #ebeef5; }
+      .nav-inner { display:flex; align-items:center; justify-content:space-between; height:64px; }
+      .brand { display:flex; align-items:center; gap:8px; font-weight: 800; }
+      .hero { background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%); border-bottom: 1px solid #ebeef5; }
+      .hero-inner { display:grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px; align-items:center; padding: 28px 0; }
+      .headline { font-size: 34px; font-weight: 900; margin: 0 0 8px 0; }
+      .subhead { color: #64748b; font-size: 18px; margin-bottom: 16px; }
+      .bullet { display:flex; align-items:center; gap:8px; color:#409EFF; font-weight: 700; }
+      .grid-3 { display:grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+      .grid-4 { display:grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+      .section { padding: 24px 0; }
+      .section-title { font-size: 20px; font-weight: 800; display:flex; justify-content:space-between; align-items:center; }
+      .card { background:#fff; border:1px solid #ebeef5; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); overflow:hidden; }
+      .card-content { padding: 16px; }
+      .cta-band { margin-top: 16px; border-radius:12px; padding: 18px; background: linear-gradient(135deg, #67C23A 0%, #409EFF 100%); color:#fff; display:flex; justify-content:space-between; align-items:center; }
+      .footer { border-top: 1px solid #ebeef5; background:#fff; color:#909399; font-size:13px; }
+      @media (max-width: 992px) { .hero-inner { grid-template-columns: 1fr; } .grid-4 { grid-template-columns: repeat(2, 1fr);} }
+      @media (max-width: 768px) { .grid-3 { grid-template-columns: 1fr; } .grid-4 { grid-template-columns: 1fr; } }
+    </style>
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.4.1/dist/index.full.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.1.0/dist/index.iife.min.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <header class="nav">
+        <div class="container nav-inner">
+          <div class="brand">
+            <el-icon><i-ep-Guide /></el-icon>
+            <span>中医体质辨识系统</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <el-button link @click="scrollTo('features')">功能</el-button>
+            <el-button link @click="scrollTo('why')">为什么选择我们</el-button>
+            <el-button link @click="scrollTo('roles')">适用人群</el-button>
+            <el-button link @click="scrollTo('faq')">常见问题</el-button>
+            <el-button type="primary" @click="scrollTo('cta')">免费体验</el-button>
+          </div>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="container hero-inner">
+          <div>
+            <h1 class="headline">更快找医生，更懂体质，更易坚持</h1>
+            <p class="subhead">预约就诊 · 体质测试生成个性化方案 · 药膳与穴位指导 · 健康打卡趋势</p>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;">
+              <div class="bullet"><el-icon><i-ep-Check /></el-icon>一分钟快速预约</div>
+              <div class="bullet"><el-icon><i-ep-Check /></el-icon>九种体质智能评估</div>
+              <div class="bullet"><el-icon><i-ep-Check /></el-icon>四季药膳与穴位方案</div>
+              <div class="bullet"><el-icon><i-ep-Check /></el-icon>打卡与趋势可视化</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <el-button type="primary" size="large" @click="scrollTo('cta')">免费开始</el-button>
+              <el-button size="large" @click="scrollTo('features')">了解功能</el-button>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:center;">
+            <img src="hospital-frontend/public/uploads/huangqi_chicken_soup.jpg" alt="hero" style="width:100%;max-width:460px;border-radius:12px;object-fit:cover;" />
+          </div>
+        </div>
+      </section>
+
+      <main>
+        <section class="section" id="features">
+          <div class="container">
+            <div class="section-title">
+              <span>核心功能</span>
+              <el-button text type="primary" @click="scrollTo('cta')">立即体验<i-ep-ArrowRight style="margin-left:4px"/></el-button>
+            </div>
+            <div class="grid-4">
+              <div class="card"><div class="card-content"><strong>预约挂号</strong><div style="color:#909399;">选医生与时段，提醒与改期更轻松</div></div></div>
+              <div class="card"><div class="card-content"><strong>体质测试</strong><div style="color:#909399;">问卷评估九种体质，生成建议</div></div></div>
+              <div class="card"><div class="card-content"><strong>药膳与穴位</strong><div style="color:#909399;">按季与体质推荐，支持收藏分享</div></div></div>
+              <div class="card"><div class="card-content"><strong>健康档案</strong><div style="color:#909399;">睡眠运动心情打卡与趋势</div></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="why">
+          <div class="container">
+            <div class="section-title"><span>为什么选择我们</span></div>
+            <div class="grid-3">
+              <div class="card"><div class="card-content"><div style="font-weight:700;">高效预约</div><div style="color:#909399;">实时可用时段与消息提醒，减少等待</div></div></div>
+              <div class="card"><div class="card-content"><div style="font-weight:700;">个性化方案</div><div style="color:#909399;">体质测试＋药膳/穴位建议，更贴合个体</div></div></div>
+              <div class="card"><div class="card-content"><div style="font-weight:700;">隐私与合规</div><div style="color:#909399;">数据加密与访问控制，流程合规</div></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="roles">
+          <div class="container">
+            <div class="section-title"><span>适用人群</span></div>
+            <div class="grid-3">
+              <div class="card"><div class="card-content"><strong>患者</strong><div style="color:#909399;">预约、测试、打卡与趋势</div><div style="margin-top:8px;"><el-button type="primary" size="small" @click="scrollTo('cta')">免费开始</el-button></div></div></div>
+              <div class="card"><div class="card-content"><strong>医生</strong><div style="color:#909399;">排班管理、接诊与评价</div><div style="margin-top:8px;"><el-button size="small" @click="scrollTo('features')">了解功能</el-button></div></div></div>
+              <div class="card"><div class="card-content"><strong>管理员</strong><div style="color:#909399;">系统概览与设置</div><div style="margin-top:8px;"><el-button size="small" @click="scrollTo('features')">了解功能</el-button></div></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="social-proof">
+          <div class="container">
+            <div class="section-title"><span>用户评价</span></div>
+            <div class="grid-3">
+              <div class="card"><div class="card-content"><strong>王女士</strong><div style="color:#909399;">预约流程顺畅，医生建议贴合体质。</div></div></div>
+              <div class="card"><div class="card-content"><strong>李先生</strong><div style="color:#909399;">药膳方案简单易做，全家受益。</div></div></div>
+              <div class="card"><div class="card-content"><strong>赵同学</strong><div style="color:#909399;">打卡与趋势帮助我保持习惯。</div></div></div>
+            </div>
+            <div class="cta-band" id="cta">
+              <strong>开启你的个性化调养之旅</strong>
+              <div style="display:flex;gap:8px;">
+                <el-button type="primary">立即开始</el-button>
+                <el-button>了解流程</el-button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="faq">
+          <div class="container">
+            <div class="section-title"><span>常见问题</span></div>
+            <el-collapse>
+              <el-collapse-item title="如何预约并收到提醒？" name="1">
+                <div style="color:#909399;">选择科室与医生后提交预约，可收到短信或站内消息提醒，并支持改期与取消。</div>
+              </el-collapse-item>
+              <el-collapse-item title="体质测试如何生成建议？" name="2">
+                <div style="color:#909399;">根据问卷结果匹配体质类型，系统给出饮食与穴位建议，可收藏并按季节调整。</div>
+              </el-collapse-item>
+              <el-collapse-item title="隐私与安全如何保障？" name="3">
+                <div style="color:#909399;">数据加密存储与访问控制，重要操作留痕，遵循行业合规要求。</div>
+              </el-collapse-item>
+            </el-collapse>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="container" style="height:64px;display:flex;align-items:center;">© 2025 中医体质辨识系统 · 官网首页预览</div>
+      </footer>
+    </div>
+
+    <script>
+      const { createApp } = Vue
+      const app = createApp({
+        setup() {
+          /**
+           * 滚动到指定锚点
+           * 入参：sectionId（字符串）
+           */
+          const scrollTo = (sectionId) => {
+            const el = document.getElementById(sectionId)
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+
+          return { scrollTo }
+        }
+      })
+
+      app.use(ElementPlus)
+      for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+        app.component(key, component)
+      }
+      app.mount('#app')
+    </script>
+  </body>
+  </html>
+
