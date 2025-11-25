@@ -1,244 +1,82 @@
-# 第一阶段功能完善实施计划
-
-## 一、数据可视化增强
-
-### 1.1 患者健康趋势图表
-
-**后端实现**：
-
-- 在 `HealthProfileService` 接口中添加方法：`getHealthTrendData(Long userId, LocalDate startDate, LocalDate endDate)`
-- 在 `HealthProfileServiceImpl` 中实现：从 `health_checkin` 表查询指定日期范围的打卡数据，按日期分组统计体重、睡眠、运动、心情
-- 在 `HealthProfileController` 中添加接口：`GET /api/health/statistics/trend?startDate=xxx&endDate=xxx&period=7/30/90`
-- 返回数据格式：`List<HealthTrendData>`，包含日期、体重、睡眠时长、运动时长、心情评分
-
-**前端实现**：
-
-- 修改 `hospital-frontend/src/views/patient/health/HealthStatistics.vue`
-- 添加时间周期选择器（7天/30天/90天）
-- 使用 ECharts 绘制折线图展示体重、睡眠、运动趋势
-- 使用柱状图展示心情分布
-- 调用新接口 `getHealthTrendData` 获取数据
-
-**文件位置**：
-
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/service/HealthProfileService.java`
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/service/impl/HealthProfileServiceImpl.java`
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/controller/HealthProfileController.java`
-- 前端：`hospital-frontend/src/views/patient/health/HealthStatistics.vue`
-- 前端：`hospital-frontend/src/api/health.js`
-
-### 1.2 体质测试历史对比雷达图
-
-**后端实现**：
-
-- 在 `ConstitutionTestService` 接口中添加方法：`getTestComparison(Long userId, List<Long> testIds)`
-- 在 `ConstitutionTestServiceImpl` 中实现：查询多个测试记录的得分，返回对比数据
-- 在 `ConstitutionController` 中添加接口：`GET /api/constitution/test/comparison?testIds=1,2,3`
-- 返回数据格式：包含各测试记录的9种体质得分
-
-**前端实现**：
-
-- 修改 `hospital-frontend/src/views/patient/constitution/TestHistory.vue`
-- 添加测试记录多选功能
-- 使用 ECharts 雷达图展示多个测试结果的对比
-- 调用新接口 `getTestComparison` 获取数据
-
-**文件位置**：
-
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/service/ConstitutionTestService.java`
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/service/impl/ConstitutionTestServiceImpl.java`
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/controller/ConstitutionController.java`
-- 前端：`hospital-frontend/src/views/patient/constitution/TestHistory.vue`
-- 前端：`hospital-frontend/src/api/constitution.js`
-
-### 1.3 管理员数据大屏
-
-**后端实现**：
-
-- 在 `StatisticsService` 接口中添加方法：`getRealtimeStats()` 返回实时预约数据
-- 在 `StatisticsServiceImpl` 中实现：查询今日预约数、待处理数、完成数、取消数
-- 在 `StatisticsController` 中添加接口：`GET /api/statistics/admin/realtime`
-- 添加方法：`getDoctorWorkloadStats(Map<String, Object> params)` 返回医生工作量统计
-- 添加接口：`GET /api/statistics/doctor/workload?startDate=xxx&endDate=xxx`
-- 添加方法：`getDepartmentHeatmapData(Map<String, Object> params)` 返回科室预约热力图数据
-- 添加接口：`GET /api/statistics/department/heatmap?startDate=xxx&endDate=xxx`
-
-**前端实现**：
-
-- 修改 `hospital-frontend/src/views/admin/Dashboard.vue`
-- 添加实时预约数据看板：使用 ECharts 仪表盘、饼图展示今日预约状态分布
-- 修改 `hospital-frontend/src/views/admin/Statistics.vue`
-- 添加医生工作量统计图表：柱状图展示医生接诊量、预约量、评价统计
-- 添加科室预约热力图：使用 ECharts 热力图展示各科室在不同时段的预约热度
-
-**文件位置**：
-
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/service/StatisticsService.java`
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/service/impl/StatisticsServiceImpl.java`
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/controller/StatisticsController.java`
-- 前端：`hospital-frontend/src/views/admin/Dashboard.vue`
-- 前端：`hospital-frontend/src/views/admin/Statistics.vue`
-- 前端：`hospital-frontend/src/api/statistics.js`
-
-## 二、消息通知系统完善
-
-### 2.1 站内消息中心
-
-**后端实现**：
-
-- 在 `NotificationService` 接口中添加方法：`queryNotificationsByType(Long userId, Page<UserNotification> page, String type, Integer readStatus)`
-- 在 `NotificationServiceImpl` 中实现：支持按类型筛选消息
-- 在 `NotificationController` 中修改接口：`GET /api/patient/notifications?type=xxx&readStatus=xxx` 支持类型筛选
-- 添加接口：`PUT /api/patient/notifications/read-all` 批量标记已读
-- 在 `NotificationService` 中添加方法：`markAllAsRead(Long userId)`
-
-**前端实现**：
-
-- 新建 `hospital-frontend/src/views/patient/NotificationCenter.vue`
-- 实现消息分类标签（系统通知、预约提醒、评价反馈等）
-- 实现消息筛选功能（全部/未读/已读）
-- 实现消息列表展示（分页）
-- 实现单个消息标记已读
-- 实现批量标记已读功能（全选、批量操作）
-- 在路由中添加：`/patient/notifications` 路由
-
-**文件位置**：
-
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/service/NotificationService.java`
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/service/impl/NotificationServiceImpl.java`
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/controller/NotificationController.java`
-- 前端：`hospital-frontend/src/views/patient/NotificationCenter.vue` (新建)
-- 前端：`hospital-frontend/src/api/notification.js`
-- 前端：`hospital-frontend/src/router/index.js`
-
-### 2.2 消息推送优化
-
-**后端实现**：
-
-- 在 `AppointmentServiceImpl` 中，预约状态变更时调用 `NotificationService.createAndSendNotification` 发送通知
-- 在 `ConversationServiceImpl` 中，医生回复消息时调用 `NotificationService.createAndSendNotification` 发送通知
-- 通知类型定义：
-- `APPOINTMENT_SUCCESS`: 预约成功
-- `APPOINTMENT_CANCELLED`: 预约取消
-- `APPOINTMENT_REMINDER`: 预约提醒
-- `DOCTOR_REPLY`: 医生回复
-
-**文件位置**：
-
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/service/impl/AppointmentServiceImpl.java`
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/service/impl/ConversationServiceImpl.java`
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/service/impl/NotificationServiceImpl.java`
-
-## 三、搜索功能增强
-
-### 3.1 全局搜索
-
-**后端实现**：
-
-- 新建 `SearchController.java`：`/api/search`
-- 新建 `SearchService.java` 接口和 `SearchServiceImpl.java` 实现
-- 实现全局搜索方法：`searchAll(String keyword, String type, Integer pageNum, Integer pageSize)`
-- 支持搜索类型：`all`（全部）、`doctor`（医生）、`recipe`（药膳）、`article`（文章）、`acupoint`（穴位）
-- 返回统一格式的搜索结果：`SearchResultDTO`，包含类型、标题、描述、链接等
-- 添加热门搜索词接口：`GET /api/search/hot-keywords`，从 Redis 统计搜索次数
-
-**前端实现**：
-
-- 新建 `hospital-frontend/src/components/SearchBox.vue` 全局搜索组件
-- 实现搜索框、搜索历史（LocalStorage）、热门搜索词展示
-- 新建 `hospital-frontend/src/views/SearchResults.vue` 搜索结果页
-- 实现搜索结果分类展示（医生、药膳、文章、穴位）
-- 在路由中添加：`/search?keyword=xxx` 路由
-- 在 `hospital-frontend/src/api/search.js` 中添加搜索相关 API
-
-**文件位置**：
-
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/controller/SearchController.java` (新建)
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/service/SearchService.java` (新建)
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/service/impl/SearchServiceImpl.java` (新建)
-- 前端：`hospital-frontend/src/components/SearchBox.vue` (新建)
-- 前端：`hospital-frontend/src/views/SearchResults.vue` (新建)
-- 前端：`hospital-frontend/src/api/search.js` (新建)
-- 前端：`hospital-frontend/src/router/index.js`
-
-### 3.2 高级筛选
-
-**后端实现**：
-
-- 修改 `HerbalRecipeController` 的搜索接口：`GET /api/recipe/search`
-- 添加筛选参数：`constitution`（体质）、`season`（季节）、`effect`（功效）
-- 在 `HerbalRecipeService` 中实现多条件筛选逻辑
-- 修改 `HealthArticleController` 的搜索接口：`GET /api/article/search`
-- 添加筛选参数：`category`（分类）、`tag`（标签）
-
-**前端实现**：
-
-- 修改 `hospital-frontend/src/views/patient/recipe/RecipeList.vue`
-- 添加筛选器组件：体质选择、季节选择、功效选择
-- 修改 `hospital-frontend/src/views/patient/community/ArticleList.vue`
-- 添加筛选器组件：分类选择、标签选择
-
-**文件位置**：
-
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/controller/HerbalRecipeController.java`
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/service/HerbalRecipeService.java`
-- 后端：`hospital-appointment-system/src/main/java/com/hospital/controller/HealthArticleController.java`
-- 前端：`hospital-frontend/src/views/patient/recipe/RecipeList.vue`
-- 前端：`hospital-frontend/src/views/patient/community/ArticleList.vue`
-
-## 四、项目文档完善
-
-### 4.1 需求分析文档
-
-- 新建 `docs/需求分析文档.md`
-- 包含：项目背景、功能需求、非功能需求、用户故事、用例描述
-
-### 4.2 系统设计文档
-
-- 新建 `docs/系统架构设计.md`
-- 包含：整体架构图、技术选型说明、模块划分、数据库设计
-- 新建 `docs/数据库设计.md`
-- 包含：数据库 ER 图、表结构说明、索引设计
-
-### 4.3 部署文档
-
-- 新建 `docs/环境搭建指南.md`
-- 包含：开发环境搭建、依赖安装、配置说明
-- 新建 `docs/部署文档.md`
-- 包含：生产环境部署步骤、数据库初始化、Nginx 配置
-
-**文件位置**：
-
-- `docs/需求分析文档.md` (新建)
-- `docs/系统架构设计.md` (新建)
-- `docs/数据库设计.md` (新建)
-- `docs/环境搭建指南.md` (新建)
-- `docs/部署文档.md` (新建)
-
-## 实施顺序
-
-1. 数据可视化增强（预计 5-6 天）
-
-- 先完成后端接口
-- 再完成前端图表
-
-2. 消息通知系统完善（预计 3-4 天）
-
-- 先完成后端接口
-- 再完成前端页面
-
-3. 搜索功能增强（预计 4-5 天）
-
-- 先完成全局搜索
-- 再完成高级筛选
-
-4. 项目文档完善（预计 4-5 天）
-
-- 并行编写各类文档
-
-## 验收标准
-
-- 数据可视化：图表能正确展示数据，支持时间周期切换
-- 消息通知：消息中心功能完整，能分类筛选、批量操作
-- 搜索功能：全局搜索能搜索所有类型内容，高级筛选能多条件组合
-- 项目文档：文档内容完整，结构清晰，包含必要的图表
+# 项目总体规划
+
+## 现状与问题概述
+- 后端：Spring Boot + MyBatis-Plus，Redis、RabbitMQ、WebSocket 已集成，统计模块已有缓存；对象映射未使用 MapStruct；部分服务包含重复的参数解析与缓存键拼接逻辑；统一异常与返回体已具备。
+- 前端：Vue3 + Vite + Element Plus，路由已懒加载；首页 `views/patient/Home.vue` 功能完善但同步发起多次请求、ECharts库同步引入、模块内聚度不足；Vitest 与 Playwright 已配置但覆盖率有限。
+- 文档：`docs/系统架构设计.md` 已存在，可在此基础上完善；首页缺少独立的设计与实现方案文档。
+
+## 目标
+- 架构稳健：明确分层与跨横切关注点（缓存、日志、限流、异常）的一致策略。
+- 代码质量：减少重复、增强内聚与可测试性，建立规范与流程。
+- 性能优化：后端查询与缓存策略优化；前端首屏与交互性能优化。
+- 首页方案：响应式、模块化、流畅交互与动画、良好加载与基础 SEO。
+- 质量保障：单测、集成测与端到端测试覆盖关键路径。
+
+# 架构与代码优化方案
+
+## 方案A：渐进式优化（推荐）
+- 在现有结构上消除热点与重复，提炼通用组件/工具，逐步引入 MapStruct、统一缓存键与过期策略，保持迭代风险低。
+
+## 方案B：部分重构与模块抽象
+- 引入领域对象与 DTO 映射层、统一 `CacheKeyBuilder`、提炼 `Result` + 错误码扩展、拆分长服务方法；对首页提炼独立组件库并建立演示页。风险与变更较大。
+
+# 详细实施清单
+
+## 后端优化
+1. DTO 映射层落地：引入 MapStruct 映射接口，替代手写拷贝（示例：用户、预约、统计 DTO）。
+2. 缓存策略统一：抽象 `CacheKeyBuilder` 与 `CacheTtlPolicy`，统一键空间与过期时间；复用到统计与推荐等服务。
+3. 数据访问优化：分页与选择列（避免不必要的 `SELECT *`），必要索引检查与补充（预约、评价、打卡表）。
+4. 统一参数校验：基于 `spring-boot-starter-validation` 在 controller 层完善 `@Valid` 与校验消息。
+5. 异常与日志：扩展 `ResultCode`，在 `GlobalExceptionHandler` 增加业务场景分类与可观测日志字段（traceId）。
+6. 单元与集成测试：补齐核心服务（预约、统计、限流、加密处理）的单测，并以 H2 + Spring Boot Test 做集成验证。
+
+## 前端优化
+1. 首页组件化拆分：`HeroBanner`、`StatGrid`、`ConstitutionPanel`、`HealthTrend`、`RecipeList`、`ArticleTimeline`；建立统一样式变量与主题。
+2. 异步加载与并行：将首页数据请求并行化（`Promise.allSettled`）；ECharts 做按需动态导入（仅可见时加载）。
+3. 交互与动画：使用 `IntersectionObserver` + CSS Transition 实现进场动画；按钮与卡片 hover 动画统一。
+4. 性能与可用性：Skeleton/Empty 占位、图片懒加载与合理尺寸、首屏关键 CSS 内联、路由 meta 标题完善；基础 SEO（`index.html` 结构化数据与关键 meta）。
+5. 测试：Vitest 组件测试（渲染、交互、边界），Playwright 端到端（登录后首页模块可见性与跳转）。
+
+## 规范与流程
+1. 代码规范：后端 Checkstyle/Spotless，前端 ESLint + Prettier + Stylelint；提交前校验。
+2. Git 流程：约定分支规范、Commit message、PR 模板与自动检查（CI 可后续加入）。
+3. 文档：统一放置在 `docs/`，避免重复文件；架构与首页方案形成版本化文档。
+
+# 首页制作方案
+
+## 信息架构与版块
+- 主视觉展示区（Hero）：系统名称、欢迎语、行动按钮（体质历史、药膳推荐）。
+- 核心功能入口（StatGrid）：体质测试次数、收藏药膳、发布文章、连续打卡，点击跳转。
+- 特色内容推荐：推荐药膳（含 AI 推荐理由）；精选养生文章。
+- 用户引导区域：体质概览与建议、健康趋势图表、更多入口与指引。
+
+## 响应式与布局
+- 容器最大宽度 `~1400px`，断点 `≥1200/≥992/≥768/<768`；栅格使用 Element Plus `el-row/el-col`。
+- 移动端：隐藏右侧大图、按钮纵向堆叠、卡片间距与字号调整。
+
+## 交互与动画
+- 进场动画：模块进入视口后淡入与上移（统一 200–300ms）。
+- 图表加载：延迟加载 + 渐显；模块切换保持状态。
+- 卡片 hover：阴影与轻微抬升统一规范。
+
+## 性能与 SEO
+- 并行请求、按需加载 ECharts；图片懒加载与预设占位图；减少重排。
+- `index.html` 增加基本 meta（keywords、description）、Open Graph、JSON-LD 结构化数据（组织与站点）。
+- 路由 `meta.title` 已用作文档标题，补充系统名称拼接。
+
+## 组件库与样式规范
+- 组件前缀 `Hsp*`，如 `HspHeroBanner` 等；样式变量集中在 `styles/*`，颜色与间距统一。
+- 动画与阴影变量化（如 `--elevation-1/2/3`）。
+
+# 测试与验收
+- 单元测试：覆盖率目标后端 ≥60%，前端组件关键逻辑 ≥70%。
+- 集成测试：用户注册/登录/预约/统计接口串联验证。
+- 端到端测试：登录后首页各模块渲染与跳转；移动端视口断点验证。
+
+# 文档与交付
+- 更新 `docs/系统架构设计.md`：补充分层图、缓存策略、错误码规范。
+- 新增 `docs/首页设计与实现方案.md`：信息架构、交互稿、组件规范、性能与 SEO 指南。
+- 输出《性能优化报告》：改动说明、基准与结果、后续建议。
+
+---
+请确认是否按“方案A 渐进式优化”推进；确认后将按上述计划实施并分阶段提交代码与文档。
