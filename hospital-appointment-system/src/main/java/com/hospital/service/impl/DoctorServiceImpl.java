@@ -5,6 +5,7 @@ import com.hospital.common.exception.BusinessException;
 import com.hospital.common.result.Result;
 import com.hospital.common.result.ResultCode;
 import com.hospital.entity.Doctor;
+import com.hospital.entity.Department;
 import com.hospital.entity.User;
 import com.hospital.common.constant.AppointmentStatus;
 import com.hospital.entity.Appointment;
@@ -572,7 +573,7 @@ public class DoctorServiceImpl implements DoctorService {
 
             // 查询科室名称
             if (doctor.getDeptId() != null) {
-                var dept = departmentMapper.selectById(doctor.getDeptId());
+                Department dept = departmentMapper.selectById(doctor.getDeptId());
                 if (dept != null) {
                     doctor.setDeptName(dept.getDeptName());
                 }
