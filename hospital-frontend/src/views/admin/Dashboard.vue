@@ -66,7 +66,7 @@
             <el-table-column prop="status" label="状态">
               <template #default="{ row }">
                 <el-tag size="small" :type="getStatusType(row.status)">
-                  {{ row.status }}
+                  {{ getStatusLabel(row.status) }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -151,11 +151,25 @@ const loadRecentAppointments = async () => {
 
 const getStatusType = (status) => {
   const map = {
-    '待就诊': 'warning',
-    '已完成': 'success',
-    '已取消': 'info'
+    'CONFIRMED': 'warning',      // 已确认
+    'IN_PROGRESS': 'primary',    // 就诊中
+    'COMPLETED': 'success',      // 已完成
+    'CANCELLED': 'info',         // 已取消
+    'NO_SHOW': 'danger'          // 爽约, 万一有这种状态
   }
   return map[status] || 'info'
+}
+
+// 新增：获取预约状态的中文显示
+const getStatusLabel = (status) => {
+  const map = {
+    'CONFIRMED': '已确认',
+    'IN_PROGRESS': '就诊中',
+    'COMPLETED': '已完成',
+    'CANCELLED': '已取消',
+    'NO_SHOW': '爽约'
+  }
+  return map[status] || status
 }
 
 onMounted(() => {
