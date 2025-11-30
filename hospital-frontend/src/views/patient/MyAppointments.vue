@@ -109,10 +109,18 @@
                     @click="reviewDoctor(item)">
                     评价医生
                   </el-button>
-                  <el-button v-if="item.status === 'COMPLETED' && item.hasReview" type="info" size="small" plain
-                    @click="viewReview(item)">
-                    查看评价
-                  </el-button>
+                  <template v-if="item.status === 'COMPLETED' && item.hasReview">
+                    <el-tag type="primary" size="small" style="margin-right: 8px;">
+                      已评价
+                    </el-tag>
+                    <el-button type="info" size="small" plain
+                      @click="viewReview(item)">
+                      <el-icon>
+                        <Document />
+                      </el-icon>
+                      查看评价
+                    </el-button>
+                  </template>
                   <el-button size="small" @click="viewDetail(item)">
                     查看详情
                   </el-button>
@@ -251,7 +259,6 @@ const loadAppointments = async () => {
           const testRes = await checkTestByAppointment(appointment.id)
           appointment.hasTest = testRes.code === 200 && testRes.data === true
         } catch (error) {
-
           appointment.hasTest = false
         }
       } else {
@@ -262,15 +269,19 @@ const loadAppointments = async () => {
       if (appointment.status === 'COMPLETED') {
         try {
           const reviewRes = await getReviewByAppointmentId(appointment.id)
-          appointment.hasReview = reviewRes.code === 200 && reviewRes.data !== null
-          appointment.reviewId = appointment.hasReview ? reviewRes.data.id : null
+          // 判断是否有评价：code为200且data存在且有id字段
+          if (reviewRes && reviewRes.code === 200 && reviewRes.data) {
+            // 检查data是否有id字段（有id说明是有效的评价对象）
+            appointment.hasReview = reviewRes.data.id !== null && reviewRes.data.id !== undefined
+          } else {
+            appointment.hasReview = false
+          }
         } catch (error) {
+          console.error('检查评价失败:', error)
           appointment.hasReview = false
-          appointment.reviewId = null
         }
       } else {
         appointment.hasReview = false
-        appointment.reviewId = null
       }
     }
 
