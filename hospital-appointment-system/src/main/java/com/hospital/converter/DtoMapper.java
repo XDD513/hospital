@@ -1,4 +1,4 @@
-package com.hospital.mapper;
+package com.hospital.converter;
 
 import com.hospital.dto.StatisticsDTO;
 import com.hospital.dto.response.LoginResponse;
@@ -74,4 +74,9 @@ public interface DtoMapper {
      */
     List<StatisticsDTO.RecentAppointment> toRecentAppointmentList(List<Appointment> appointments);
 }
+
+
+
+
+
 
