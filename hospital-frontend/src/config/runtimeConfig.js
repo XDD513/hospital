@@ -142,7 +142,6 @@ export const loadAppConfig = async () => {
         if (!response.ok) {
           // 如果是 401 且没有 token，使用默认配置（这是正常的，用户可能未登录）
           if (response.status === 401 && !token) {
-            console.log('[runtime-config] 未登录状态，使用默认配置')
             return assignAndMarkLoaded(defaultConfig)
           }
           throw new Error(`获取配置失败，HTTP ${response.status}`)
@@ -153,7 +152,6 @@ export const loadAppConfig = async () => {
         }
         // 如果业务状态码不是 200，但也不是认证错误，使用默认配置
         if (payload?.code === 401 && !token) {
-          console.log('[runtime-config] 未登录状态，使用默认配置')
           return assignAndMarkLoaded(defaultConfig)
         }
         throw new Error(payload?.message || '配置中心返回异常')
