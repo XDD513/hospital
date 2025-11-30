@@ -101,7 +101,6 @@ public class ConsultationRecordServiceImpl extends ServiceImpl<ConsultationRecor
                 try {
                     @SuppressWarnings("unchecked")
                     IPage<ConsultationRecord> cachedPage = (IPage<ConsultationRecord>) cached;
-                    log.info("从缓存获取接诊记录");
                     return cachedPage;
                 } catch (ClassCastException ignored) {}
             }

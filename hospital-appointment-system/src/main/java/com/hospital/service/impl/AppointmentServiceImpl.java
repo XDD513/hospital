@@ -139,6 +139,15 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
                     if (doctor.getDeptId() != null) {
                         appointment.setDeptId(doctor.getDeptId());
                     }
+                    // 设置预约金额：如果前端传递了就用前端的，否则使用医生的咨询费
+                    if (appointment.getConsultationFee() == null || appointment.getConsultationFee().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                        if (doctor.getConsultationFee() != null) {
+                            appointment.setConsultationFee(doctor.getConsultationFee());
+                        } else {
+                            // 如果医生也没有设置咨询费，默认设为0
+                            appointment.setConsultationFee(java.math.BigDecimal.ZERO);
+                        }
+                    }
                 }
             } catch (Exception e) {
                 log.error("查询医生信息失败: doctorId={}, error={}", appointment.getDoctorId(), e.getMessage());
@@ -159,6 +168,13 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
             // 4. 扣减号源（事务内）并保存预约
             scheduleService.decreaseQuota(schedule.getId());
             appointmentMapper.insert(appointment);
+
+            // 4.5. 如果用户roleType为0（普通用户），预约成功后将其更新为1（患者）
+            if (patient.getRoleType() != null && patient.getRoleType() == 0) {
+                patient.setRoleType(1);
+                userMapper.updateById(patient);
+                log.info("用户roleType已更新: userId={}, roleType: 0 -> 1", patient.getId());
+            }
 
             log.info("创建预约成功: appointmentId={}, patientName={}, queueNumber={}", 
                     appointment.getId(), appointment.getPatientName(), queueNumber);
@@ -452,7 +468,11 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
                 if (doctor != null) {
                     appointment.setDoctorName(doctor.getDoctorName());
                     appointment.setDoctorTitle(doctor.getTitle());
-                    appointment.setConsultationFee(doctor.getConsultationFee());
+                    // 如果预约金额为空，才使用医生的咨询费（用于展示）
+                    // 注意：数据库中已经存储了预约时的金额，这里不要覆盖
+                    if (appointment.getConsultationFee() == null || appointment.getConsultationFee().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                        appointment.setConsultationFee(doctor.getConsultationFee());
+                    }
                 }
             } catch (Exception e) {
                 log.warn("获取医生信息失败: doctorId={}", appointment.getDoctorId(), e);

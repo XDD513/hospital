@@ -157,7 +157,6 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
         // 尝试从缓存获取
         Object cached = redisUtil.get(cacheKey);
         if (cached instanceof String) {
-            log.debug("从缓存获取推荐理由：recipeId={}", recipe.getId());
             return (String) cached;
         }
 
@@ -210,7 +209,6 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
             try {
                 @SuppressWarnings("unchecked")
                 List<HerbalRecipe> cachedList = (List<HerbalRecipe>) cached;
-                log.debug("从缓存获取对话推荐结果");
                 return cachedList;
             } catch (ClassCastException ignored) {}
         }
@@ -265,7 +263,6 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
         // 尝试从缓存获取
         Object cached = redisUtil.get(cacheKey);
         if (cached instanceof String) {
-            log.debug("从缓存获取问答结果");
             return (String) cached;
         }
 

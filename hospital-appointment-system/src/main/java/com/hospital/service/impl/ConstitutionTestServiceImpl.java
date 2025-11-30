@@ -73,7 +73,6 @@ public class ConstitutionTestServiceImpl implements ConstitutionTestService {
                 try {
                     @SuppressWarnings("unchecked")
                     List<QuestionnaireResponse> list = (List<QuestionnaireResponse>) cached;
-                    log.info("从缓存获取问卷数据，共{}题", list.size());
                     return Result.success(list);
                 } catch (ClassCastException ignored) {}
             }
@@ -107,7 +106,6 @@ public class ConstitutionTestServiceImpl implements ConstitutionTestService {
             // 6. 存入缓存（永久）
             redisUtil.set(cacheKey, responseList);
 
-            log.info("成功获取问卷，共{}题", responseList.size());
             return Result.success(responseList);
 
         } catch (Exception e) {
@@ -263,7 +261,6 @@ public class ConstitutionTestServiceImpl implements ConstitutionTestService {
                     })
                     .collect(Collectors.toList());
 
-            log.info("成功获取用户{}的测试历史，共{}条", userId, responseList.size());
             return Result.success(responseList);
 
         } catch (Exception e) {
@@ -291,7 +288,6 @@ public class ConstitutionTestServiceImpl implements ConstitutionTestService {
             Map<String, Double> scores = parseScoresFromJson(test.getTestResult());
             TestResultResponse response = buildTestResultResponse(test, primaryType, secondaryType, scores);
 
-            log.info("成功获取用户{}的最新测试结果", userId);
             return Result.success(response);
 
         } catch (Exception e) {
@@ -319,7 +315,6 @@ public class ConstitutionTestServiceImpl implements ConstitutionTestService {
             Map<String, Double> scores = parseScoresFromJson(test.getTestResult());
             TestResultResponse response = buildTestResultResponse(test, primaryType, secondaryType, scores);
 
-            log.info("成功获取测试报告: {}", testId);
             return Result.success(response);
 
         } catch (Exception e) {
@@ -444,7 +439,6 @@ public class ConstitutionTestServiceImpl implements ConstitutionTestService {
 
             TestResultResponse response = buildTestResultResponse(test, primaryType, secondaryType, scores);
 
-            log.info("成功获取预约{}的体质测试结果", appointmentId);
             return Result.success(response);
 
         } catch (Exception e) {

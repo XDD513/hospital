@@ -166,7 +166,6 @@ public class AppointmentController {
             if (cached != null) {
                 @SuppressWarnings("unchecked")
                 IPage<Appointment> cachedPage = (IPage<Appointment>) cached;
-                log.info("从缓存获取预约列表: page={}, pageSize={}", page, pageSize);
                 return Result.success(cachedPage);
             }
         }
@@ -369,6 +368,78 @@ public class AppointmentController {
             log.info("已失效预约列表缓存");
         }
         return Result.success(result);
+    }
+
+    /**
+     * 叫号功能 - 给患者发送广播通知
+     */
+    @OperationLog(module = "APPOINTMENT", type = "UPDATE", description = "叫号")
+    @PostMapping("/call/{id}")
+    public Result<Boolean> callPatient(@PathVariable Long id) {
+        try {
+            Appointment appointment = appointmentService.getById(id);
+            if (appointment == null) {
+                return Result.error("预约不存在");
+            }
+
+            // 使用Redis存储叫号状态，key: appointment:called:{appointmentId}
+            String callKey = "appointment:called:" + id;
+            redisUtil.set(callKey, "true", 24, java.util.concurrent.TimeUnit.HOURS);
+            log.info("已标记预约为已叫号: appointmentId={}", id);
+
+            // 失效医生端患者列表缓存，确保立即显示更新
+            Long doctorId = appointment.getDoctorId();
+            if (doctorId != null) {
+                redisUtil.delete("hospital:doctor:patient:list:today:doctor:" + doctorId);
+                log.info("已失效医生端患者列表缓存，doctorId={}", doctorId);
+            }
+
+            // 发送通知给患者
+            if (appointment.getPatientId() != null) {
+                try {
+                    // 丰富预约信息（获取患者、医生、科室信息）
+                    ((com.hospital.service.impl.AppointmentServiceImpl) appointmentService).enrichAppointmentInfo(appointment);
+                    
+                    // 获取医生和科室信息
+                    com.hospital.entity.Doctor doctor = doctorMapper.selectById(appointment.getDoctorId());
+                    com.hospital.entity.Department department = null;
+                    if (appointment.getCategoryId() != null) {
+                        department = departmentMapper.selectById(appointment.getCategoryId());
+                    }
+
+                    String doctorName = appointment.getDoctorName() != null ? appointment.getDoctorName() : 
+                                       (doctor != null ? doctor.getDoctorName() : "医生");
+                    String deptName = appointment.getDeptName() != null ? appointment.getDeptName() :
+                                     (department != null ? department.getCategoryName() : "");
+                    String location = department != null && department.getLocation() != null ? department.getLocation() : "";
+                    String consultationAddress = deptName + (location.isEmpty() ? "" : " " + location);
+
+                    String patientName = appointment.getPatientName() != null ? appointment.getPatientName() : "您";
+                    
+                    // 构建叫号通知内容
+                    String notificationContent = String.format("请%s到%s就诊，医生%s正在等待您", 
+                        patientName,
+                        consultationAddress.isEmpty() ? "诊室" : consultationAddress,
+                        doctorName);
+
+                    // 发送通知
+                    notificationService.createAndSendNotification(
+                        appointment.getPatientId(),
+                        "叫号通知",
+                        notificationContent,
+                        "APPOINTMENT_CALL"
+                    );
+                    log.info("已发送叫号通知: appointmentId={}, patientId={}", id, appointment.getPatientId());
+                } catch (Exception e) {
+                    log.warn("发送叫号通知失败: appointmentId={}, error={}", id, e.getMessage());
+                }
+            }
+
+            return Result.success(true);
+        } catch (Exception e) {
+            log.error("叫号失败: appointmentId={}", id, e);
+            return Result.error("叫号失败：" + e.getMessage());
+        }
     }
 
 }
