@@ -13,40 +13,71 @@
       <div class="card-body">
         <el-tabs v-model="activeTab">
           <el-tab-pane label="今日患者" name="today">
-            <el-table :data="todayPageData" v-loading="loading">
-              <el-table-column prop="queueNumber" label="序号" width="80" />
-              <el-table-column prop="patientName" label="患者姓名" width="120" />
-              <el-table-column prop="gender" label="性别" width="70" />
-              <el-table-column prop="age" label="年龄" width="70" />
-              <el-table-column prop="phone" label="联系电话" width="130" />
-              <el-table-column prop="appointmentTime" label="预约时间" width="120" />
-              <el-table-column prop="status" label="状态" width="100">
+            <el-table :data="todayPageData" v-loading="loading" border stripe style="width: 100%">
+              <el-table-column prop="queueNumber" label="序号" width="80" align="center" />
+              <el-table-column prop="patientName" label="就诊人" width="120" align="center" />
+              <el-table-column prop="doctorName" label="预约医生" width="120" align="center" />
+              <el-table-column prop="deptName" label="预约科室" width="150" align="center" />
+              <el-table-column prop="appointmentDateStr" label="预约时间" width="120" align="center" />
+              <el-table-column prop="timeSlot" label="预约时段" width="100" align="center">
                 <template #default="{ row }">
-                  <el-tag :type="getStatusType(row.status)">{{ row.status }}</el-tag>
+                  <el-tag :type="getTimeSlotType(row.timeSlot)" size="small">{{ formatTimeSlot(row.timeSlot) }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" fixed="right" width="250">
+              <el-table-column prop="dayOfWeek" label="星期" width="80" align="center">
                 <template #default="{ row }">
-                  <el-button v-if="['PENDING', 'CONFIRMED'].includes(row.status)" type="primary" size="small"
-                    @click="startConsultation(row)">
-                    <el-icon>
-                      <Checked />
-                    </el-icon>
-                    开始接诊
-                  </el-button>
-                  <el-button v-if="row.status === 'IN_PROGRESS'" type="success" size="small"
-                    @click="completeConsultation(row)">
-                    <el-icon>
-                      <CircleCheckFilled />
-                    </el-icon>
-                    完成接诊
-                  </el-button>
-                  <el-button size="small" type="info" @click="viewPatientDetail(row)">
-                    <el-icon>
-                      <View />
-                    </el-icon>
-                    详情
-                  </el-button>
+                  {{ formatDayOfWeek(row.dayOfWeek) }}
+                </template>
+              </el-table-column>
+              <el-table-column prop="createTime" label="预约订单创建时间" width="180" align="center" />
+              <el-table-column prop="consultationFee" label="预约金额" width="100" align="center">
+                <template #default="{ row }">
+                  ¥{{ row.consultationFee || 0 }}
+                </template>
+              </el-table-column>
+              <el-table-column prop="consultationAddress" label="就诊地址" width="180" align="center" show-overflow-tooltip />
+              <el-table-column prop="status" label="预约状态" width="100" align="center">
+                <template #default="{ row }">
+                  <el-tag :type="getStatusType(row.status)" size="small">{{ getStatusText(row.status) }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="isCalled" label="是否叫号" width="100" align="center">
+                <template #default="{ row }">
+                  <el-tag :type="row.isCalled ? 'success' : 'info'" size="small">
+                    {{ row.isCalled ? '已叫号' : '未叫号' }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" fixed="right" width="400" align="center">
+                <template #default="{ row }">
+                  <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                    <el-button v-if="!row.isCalled" type="primary" size="small" @click="callPatient(row)">
+                      <el-icon>
+                        <Microphone />
+                      </el-icon>
+                      叫号
+                    </el-button>
+                    <el-button v-if="['PENDING', 'CONFIRMED'].includes(row.status)" type="primary" size="small"
+                      @click="startConsultation(row)">
+                      <el-icon>
+                        <Checked />
+                      </el-icon>
+                      开始接诊
+                    </el-button>
+                    <el-button v-if="row.status === 'IN_PROGRESS'" type="success" size="small"
+                      @click="completeConsultation(row)">
+                      <el-icon>
+                        <CircleCheckFilled />
+                      </el-icon>
+                      完成接诊
+                    </el-button>
+                    <el-button size="small" type="info" @click="viewPatientDetail(row)">
+                      <el-icon>
+                        <View />
+                      </el-icon>
+                      详情
+                    </el-button>
+                  </div>
                 </template>
               </el-table-column>
             </el-table>
@@ -98,11 +129,12 @@
 import message from '@/plugins/message'
 import { ref, watch, onMounted, reactive, computed, nextTick } from 'vue'
 
-import { User, Checked, View, CircleCheckFilled } from '@element-plus/icons-vue'
+import { User, Checked, View, CircleCheckFilled, Microphone } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { useDoctorStore } from '@/stores/doctor'
 import { getTodayPatients, getHistoryPatients } from '@/api/patient'
 import { startConsultation as startConsultationApi } from '@/api/consultation'
+import { callPatient as callPatientApi } from '@/api/appointment'
 import ConsultationDialog from '@/components/doctor/ConsultationDialog.vue'
 import PatientDetailDialog from '@/components/doctor/PatientDetailDialog.vue'
 
@@ -210,11 +242,85 @@ watch(searchText, () => {
 const getStatusType = (status) => {
   const map = {
     PENDING: 'warning',
-    CONFIRMED: 'warning',
+    CONFIRMED: 'primary',
     IN_PROGRESS: 'success',
-    COMPLETED: 'success'
+    COMPLETED: 'success',
+    CANCELLED: 'info',
+    NO_SHOW: 'danger'
   }
   return map[status] || 'info'
+}
+
+// 获取状态文本
+const getStatusText = (status) => {
+  const map = {
+    PENDING: '待确认',
+    CONFIRMED: '已预约',
+    IN_PROGRESS: '就诊中',
+    COMPLETED: '已完成',
+    CANCELLED: '已取消',
+    NO_SHOW: '爽约'
+  }
+  return map[status] || status
+}
+
+// 格式化时段
+const formatTimeSlot = (slot) => {
+  const slotMap = {
+    'MORNING': '上午',
+    'AFTERNOON': '下午',
+    'EVENING': '晚间'
+  }
+  return slotMap[slot] || slot
+}
+
+// 时段标签类型
+const getTimeSlotType = (slot) => {
+  const typeMap = {
+    'MORNING': 'success',
+    'AFTERNOON': 'warning',
+    'EVENING': 'danger'
+  }
+  return typeMap[slot] || 'info'
+}
+
+// 格式化星期
+const formatDayOfWeek = (day) => {
+  const dayMap = {
+    'Monday': '星期一',
+    'Tuesday': '星期二',
+    'Wednesday': '星期三',
+    'Thursday': '星期四',
+    'Friday': '星期五',
+    'Saturday': '星期六',
+    'Sunday': '星期日',
+    '星期一': '星期一',
+    '星期二': '星期二',
+    '星期三': '星期三',
+    '星期四': '星期四',
+    '星期五': '星期五',
+    '星期六': '星期六',
+    '星期日': '星期日'
+  }
+  return dayMap[day] || day || ''
+}
+
+// 叫号功能
+const callPatient = async (patient) => {
+  try {
+    const res = await callPatientApi(patient.appointmentId)
+    if (res.code === 200) {
+      message.success('叫号成功，已通知患者')
+      // 更新本地状态
+      patient.isCalled = true
+      // 刷新数据
+      await loadTodayPatients()
+    } else {
+      message.error(res.message || '叫号失败')
+    }
+  } catch (error) {
+    message.error('叫号失败')
+  }
 }
 
 // 开始接诊
@@ -294,12 +400,53 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .patients-container {
-  max-width: 1400px;
+  max-width: 100%;
   margin: 0 auto;
+  padding: 20px;
 
-  h2 {
-    margin: 0;
-    font-size: 20px;
+  .doctor-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    
+    .card-header {
+      padding: 20px;
+      border-bottom: 1px solid #e4e7ed;
+      
+      h3 {
+        margin: 0;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+    }
+    
+    .card-body {
+      padding: 20px;
+    }
+  }
+
+  :deep(.el-table) {
+    border: 1px solid #dcdfe6;
+    
+    .el-table__header {
+      th {
+        background-color: #f5f7fa;
+        color: #303133;
+        font-weight: 600;
+      }
+    }
+    
+    .el-table__body {
+      td {
+        border-bottom: 1px solid #ebeef5;
+      }
+    }
+    
+    .el-table__border {
+      border: 1px solid #dcdfe6;
+    }
   }
 
   .pagination {
