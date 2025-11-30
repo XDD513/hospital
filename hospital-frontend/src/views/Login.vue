@@ -134,10 +134,13 @@ const handleLogin = async () => {
         const roleType = res.data.roleType
         let homePath = '/patient/home'
 
+        // roleType 0 或 1 都跳转到患者端
         if (roleType === 2) {
           homePath = '/doctor/dashboard'
         } else if (roleType === 3) {
           homePath = '/admin/dashboard'
+        } else if (roleType === 0 || roleType === 1) {
+          homePath = '/patient/home'
         }
 
         // 立即跳转，不使用setTimeout

@@ -167,7 +167,7 @@ const isSelfMessage = (message) => {
 // 获取当前用户角色
 const getCurrentUserRole = () => {
   const roleType = userStore.userInfo?.roleType
-  if (roleType === 1) return 'PATIENT'
+  if (roleType === 0 || roleType === 1) return 'PATIENT'
   if (roleType === 2) return 'DOCTOR'
   if (roleType === 3) return 'ADMIN'
   return null
