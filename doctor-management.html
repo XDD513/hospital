@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>管理权限系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom scrollbar to match the clean look */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1; 
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1; 
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8; 
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    }
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .scrollbar-hide {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+  </style>
+  
+  <!-- Import Map to resolve modules -->
+  <script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@18.2.0",
+      "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+      "lucide-react": "https://esm.sh/lucide-react@0.292.0"
+    }
+  }
+  </script>
+  <!-- Babel for JSX transformation -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="react,typescript" data-type="module">
+    import React, { useState } from 'react';
+    import { createRoot } from 'react-dom/client';
+    import { 
+      Home, Settings, User, Users, FileText, LayoutGrid, Calendar, 
+      MessageSquare, Bell, ChevronDown, Building2, ClipboardList, 
+      Mail, ChevronRight, Menu, Maximize, X, Search, Plus, 
+      Edit, Lock, Trash2, RefreshCw 
+    } from 'lucide-react';
+
+    // --- Types ---
+    // (In a real TS environment these would be separate, but here we just use them for documentation/inference if Babel supports it)
+    
+    interface Doctor {
+      id: number;
+      name: string;
+      avatar: string;
+      department: string;
+      gender: '男' | '女';
+      username: string;
+      phone: string;
+      email: string;
+      location: string;
+      isRecommended: boolean;
+      isEnabled: boolean;
+    }
+
+    type ViewKey = 
+      | 'home' | 'system' | 'doctor' | 'role' | 'menu' | 'patient' 
+      | 'department' | 'schedule' | 'appointment' | 'record' 
+      | 'news' | 'feedback' | 'notice';
+
+    interface MenuItem {
+      key: ViewKey;
+      title: string;
+      icon?: any;
+      children?: MenuItem[];
+    }
+
+    interface TabItem {
+      key: ViewKey;
+      title: string;
+      closable: boolean;
+    }
+
+    // --- Components ---
+
+    // 1. Sidebar Component
+    const Sidebar = ({ activeKey, onMenuClick }) => {
+      const [systemOpen, setSystemOpen] = useState(true);
+
+      const isActive = (key) => activeKey === key;
+
+      const MenuItem = ({ 
+        icon: Icon, 
+        title, 
+        itemKey, 
+        hasSub = false, 
+        isOpen = false, 
+        onClick 
+      }) => {
+        const active = itemKey && isActive(itemKey);
+        // Active state for submenu items vs top level items
+        const baseClasses = "px-4 py-3 flex items-center cursor-pointer transition-colors duration-200";
+        const colorClasses = active 
+          ? "text-[#409EFF]" 
+          : "text-[rgb(191,203,217)] hover:bg-[#263445] hover:text-white";
+
+        return (
+          <div 
+            className={`${baseClasses} ${colorClasses} ${active && !hasSub ? 'bg-[#001528]' : ''}`}
+            onClick={onClick}
+          >
+            {Icon && <Icon size={18} className={`mr-3 ${active ? 'text-[#409EFF]' : ''}`} />}
+            <span className="text-sm flex-1">{title}</span>
+            {hasSub && (
+              isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />
+            )}
+          </div>
+        );
+      };
+
+      const SubMenuItem = ({ title, itemKey, icon: Icon }) => {
+        const active = isActive(itemKey);
+        return (
+          <div 
+            className={`pl-12 pr-4 py-3 flex items-center cursor-pointer text-sm hover:bg-[#001528] transition-colors
+              ${active ? 'text-[#409EFF] bg-[#001528] border-r-2 border-[#409EFF]' : 'text-[rgb(191,203,217)] hover:text-white'}
+            `}
+            onClick={() => onMenuClick(itemKey, title)}
+          >
+            <Icon size={16} className="mr-3" />
+            <span className="font-medium">{title}</span>
+          </div>
+        );
+      };
+
+      return (
+        <div className="w-[210px] bg-[#304156] text-white flex flex-col h-screen flex-shrink-0 transition-all duration-300">
+          {/* Logo Area */}
+          <div className="h-[50px] bg-[#2b2f3a] flex items-center justify-center font-bold text-lg shadow-md z-10">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-green-600 rounded flex items-center justify-center">
+                <Building2 size={14} />
+              </div>
+              <span className="text-white text-base">管理权限系统</span>
+            </div>
+          </div>
+
+          {/* Menu Items */}
+          <div className="flex-1 overflow-y-auto py-2 scrollbar-hide">
+            
+            <MenuItem 
+              icon={Home} 
+              title="首页" 
+              itemKey="home" 
+              onClick={() => onMenuClick('home', '首页')} 
+            />
+
+            {/* System Management (Collapsible) */}
+            <div>
+              <MenuItem 
+                icon={Settings} 
+                title="系统管理" 
+                hasSub 
+                isOpen={systemOpen}
+                onClick={() => setSystemOpen(!systemOpen)}
+              />
+              
+              {/* Submenu */}
+              <div className={`bg-[#1f2d3d] overflow-hidden transition-all duration-300 ${systemOpen ? 'max-h-[500px]' : 'max-h-0'}`}>
+                <SubMenuItem icon={User} title="医生管理" itemKey="doctor" />
+                <SubMenuItem icon={Users} title="角色管理" itemKey="role" />
+                <SubMenuItem icon={LayoutGrid} title="菜单管理" itemKey="menu" />
+              </div>
+            </div>
+
+            <MenuItem icon={User} title="患者管理" itemKey="patient" onClick={() => onMenuClick('patient', '患者管理')} />
+            <MenuItem icon={Building2} title="科室管理" itemKey="department" onClick={() => onMenuClick('department', '科室管理')} />
+            <MenuItem icon={Calendar} title="排班管理" itemKey="schedule" onClick={() => onMenuClick('schedule', '排班管理')} />
+            <MenuItem icon={ClipboardList} title="预约管理" itemKey="appointment" onClick={() => onMenuClick('appointment', '预约管理')} />
+            <MenuItem icon={FileText} title="就诊记录" itemKey="record" onClick={() => onMenuClick('record', '就诊记录')} />
+            <MenuItem icon={MessageSquare} title="资讯管理" itemKey="news" onClick={() => onMenuClick('news', '资讯管理')} />
+            <MenuItem icon={Mail} title="反馈管理" itemKey="feedback" onClick={() => onMenuClick('feedback', '反馈管理')} />
+            <MenuItem icon={Bell} title="公告管理" itemKey="notice" onClick={() => onMenuClick('notice', '公告管理')} />
+
+          </div>
+        </div>
+      );
+    };
+
+    // 2. Header Component
+    const Header = ({ breadcrumbs, sidebarOpen, toggleSidebar }) => {
+      return (
+        <header className="h-[50px] bg-[#009688] text-white flex items-center justify-between px-4 shadow-sm flex-shrink-0">
+          <div className="flex items-center gap-4">
+            <Menu 
+              className="cursor-pointer hover:bg-white/10 p-1 rounded" 
+              size={24} 
+              onClick={toggleSidebar}
+            />
+            
+            <nav className="flex items-center text-sm">
+              {breadcrumbs.map((item, index) => (
+                <React.Fragment key={index}>
+                  <span className={index === breadcrumbs.length - 1 ? "font-medium" : "opacity-80"}>
+                    {item}
+                  </span>
+                  {index < breadcrumbs.length - 1 && (
+                    <span className="mx-2 opacity-60">/</span>
+                  )}
+                </React.Fragment>
+              ))}
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-4 text-sm">
+            <Maximize className="cursor-pointer hover:bg-white/10 p-1 rounded" size={20} />
+            <div className="flex items-center gap-2 cursor-pointer hover:bg-white/10 px-2 py-1 rounded">
+              <span>欢迎您，管理员</span>
+              <img 
+                src="https://picsum.photos/32/32?random=99" 
+                alt="Admin" 
+                className="w-8 h-8 rounded-full border-2 border-white/30"
+              />
+            </div>
+          </div>
+        </header>
+      );
+    };
+
+    // 3. TagsView Component
+    const TagsView = ({ tabs, activeKey, onTabClick, onTabClose }) => {
+      return (
+        <div className="h-[34px] bg-white border-b border-gray-200 flex items-center px-4 shadow-sm overflow-x-auto whitespace-nowrap scrollbar-hide">
+          {tabs.map((tab) => {
+            const isActive = tab.key === activeKey;
+            return (
+              <div 
+                key={tab.key}
+                onClick={() => onTabClick(tab.key)}
+                className={`
+                  inline-flex items-center px-3 py-1 text-xs border mr-2 rounded-[3px] cursor-pointer transition-colors select-none
+                  ${isActive 
+                    ? 'bg-[#009688] text-white border-[#009688]' 
+                    : 'bg-white text-gray-600 border-gray-200 hover:text-gray-800'}
+                `}
+              >
+                {isActive && <span className="w-2 h-2 rounded-full bg-white mr-2"></span>}
+                {tab.title}
+                {tab.closable && (
+                  <span 
+                    className={`ml-2 rounded-full p-0.5 hover:bg-black/20 ${isActive ? 'text-white' : 'text-gray-400'}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onTabClose(tab.key);
+                    }}
+                  >
+                    <X size={10} strokeWidth={3} />
+                  </span>
+                )}
+              </div>
+            );
+          })}
+          
+          <div className="ml-auto text-xs text-[#009688] cursor-pointer hover:underline px-2 flex-shrink-0 flex items-center gap-1">
+            <div className="w-4 h-4 rounded-full border border-[#009688] flex items-center justify-center">
+                <X size={10} />
+            </div>
+            <span>关闭</span>
+          </div>
+        </div>
+      );
+    };
+
+    // 4. DoctorTable Component
+    const mockDoctors = [
+      {
+        id: 1,
+        name: '杨岳龙',
+        avatar: 'https://picsum.photos/id/1005/40/40',
+        department: '发热门诊',
+        gender: '男',
+        username: 'yu123',
+        phone: '454818',
+        email: '344343224',
+        location: '发热门诊105',
+        isRecommended: true,
+        isEnabled: true
+      },
+      {
+        id: 2,
+        name: '黄丽媛',
+        avatar: 'https://picsum.photos/id/1011/40/40',
+        department: '耳鼻眼科门诊',
+        gender: '女',
+        username: 'hly123',
+        phone: '1581584',
+        email: '3123123123',
+        location: '门诊楼503',
+        isRecommended: true,
+        isEnabled: true
+      },
+      {
+        id: 3,
+        name: '简珊余',
+        avatar: 'https://picsum.photos/id/1012/40/40',
+        department: '儿科专家门诊',
+        gender: '男',
+        username: 'j123',
+        phone: '8563263',
+        email: '312321@qq.com',
+        location: '儿科门诊206',
+        isRecommended: true,
+        isEnabled: true
+      },
+      {
+        id: 4,
+        name: '李胜',
+        avatar: 'https://picsum.photos/id/1025/40/40',
+        department: '发热门诊',
+        gender: '男',
+        username: 'ls123',
+        phone: '8563696',
+        email: '44874',
+        location: '发热门诊606',
+        isRecommended: true,
+        isEnabled: true
+      },
+      {
+        id: 5,
+        name: '李媛媛',
+        avatar: 'https://picsum.photos/id/1027/40/40',
+        department: '儿科急诊门诊',
+        gender: '女',
+        username: '111',
+        phone: '8625965',
+        email: '111',
+        location: '儿科急诊室310',
+        isRecommended: true,
+        isEnabled: true
+      },
+    ];
+
+    const ToggleSwitch = ({ checked }) => (
+      <div className={`w-10 h-5 rounded-full relative cursor-pointer transition-colors duration-200 ${checked ? 'bg-[#13ce66]' : 'bg-gray-300'}`}>
+        <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all duration-200 shadow-sm ${checked ? 'left-5' : 'left-0.5'}`}></div>
+      </div>
+    );
+
+    const Tag = ({ type, text, closable = true }) => {
+      const styles = type === 'blue' 
+        ? 'bg-[rgba(64,158,255,0.1)] text-[#409EFF] border border-[rgba(64,158,255,0.2)]' 
+        : 'bg-[rgba(245,108,108,0.1)] text-[#F56C6C] border border-[rgba(245,108,108,0.2)]';
+      
+      return (
+        <span className={`${styles} text-xs px-2 py-0.5 rounded-sm inline-flex items-center gap-1`}>
+          {text}
+          {closable && <X size={12} className="cursor-pointer hover:opacity-70" />}
+        </span>
+      );
+    };
+
+    const Button = ({ variant, icon, text }) => {
+      const baseClasses = "flex items-center gap-1 px-3 py-1.5 rounded-[3px] text-xs text-white transition-opacity hover:opacity-90 shadow-sm";
+      const variants = {
+        primary: "bg-[#409EFF] border border-[#409EFF]", // Blue
+        warning: "bg-[#E6A23C] border border-[#E6A23C]", // Orange/Yellow
+        danger: "bg-[#F56C6C] border border-[#F56C6C]",  // Red
+      };
+      
+      return (
+        <button className={`${baseClasses} ${variants[variant]}`}>
+          {icon}
+          <span>{text}</span>
+        </button>
+      );
+    };
+
+    const DoctorTable = () => {
+      return (
+        <div className="bg-white p-5 rounded-sm shadow-sm min-h-full">
+            
+          {/* Filter Bar */}
+          <div className="flex flex-wrap items-center gap-3 mb-5">
+            <input 
+              type="text" 
+              placeholder="请输入姓名" 
+              className="border border-gray-300 rounded-[3px] px-3 py-1.5 text-sm w-[200px] focus:outline-none focus:border-[#409EFF] placeholder-gray-400"
+            />
+            <input 
+              type="text" 
+              placeholder="请输入电话" 
+              className="border border-gray-300 rounded-[3px] px-3 py-1.5 text-sm w-[200px] focus:outline-none focus:border-[#409EFF] placeholder-gray-400"
+            />
+            
+            <button className="flex items-center gap-1 px-4 py-1.5 border border-gray-300 rounded-[3px] text-gray-600 text-sm hover:text-[#409EFF] hover:border-[#409EFF] bg-white transition-colors">
+              <Search size={14} />
+              搜索
+            </button>
+            
+            <button className="flex items-center gap-1 px-4 py-1.5 border border-gray-300 rounded-[3px] text-gray-600 text-sm hover:text-gray-800 bg-white">
+              <RefreshCw size={14} className="text-gray-400" />
+              重置
+            </button>
+
+            <button className="flex items-center gap-1 px-4 py-1.5 rounded-[3px] text-white text-sm bg-[#409EFF] hover:bg-[#66b1ff]">
+              <Plus size={14} />
+              新增
+            </button>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto border border-gray-200 rounded-[2px]">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-[#f8f8f9] text-gray-600 font-bold border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-center w-20">头像</th>
+                  <th className="px-4 py-3 w-24">姓名</th>
+                  <th className="px-4 py-3">科室</th>
+                  <th className="px-4 py-3 text-center w-20">性别</th>
+                  <th className="px-4 py-3">账户</th>
+                  <th className="px-4 py-3">电话</th>
+                  <th className="px-4 py-3">邮箱</th>
+                  <th className="px-4 py-3">出诊地址</th>
+                  <th className="px-4 py-3 text-center w-24">推荐首页</th>
+                  <th className="px-4 py-3 text-center w-24">启用状态</th>
+                  <th className="px-4 py-3 text-center w-[280px]">操作</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {mockDoctors.map((doctor) => (
+                  <tr key={doctor.id} className="hover:bg-gray-50 transition-colors text-gray-600">
+                    <td className="px-4 py-3 flex justify-center">
+                      <img 
+                        src={doctor.avatar} 
+                        alt={doctor.name} 
+                        className="w-[40px] h-[40px] rounded-full object-cover border border-gray-200"
+                      />
+                    </td>
+                    <td className="px-4 py-3">{doctor.name}</td>
+                    <td className="px-4 py-3">{doctor.department}</td>
+                    <td className="px-4 py-3 text-center">
+                      <Tag 
+                        type={doctor.gender === '男' ? 'blue' : 'red'} 
+                        text={doctor.gender} 
+                      />
+                    </td>
+                    <td className="px-4 py-3">{doctor.username}</td>
+                    <td className="px-4 py-3">{doctor.phone}</td>
+                    <td className="px-4 py-3 max-w-[150px] truncate">{doctor.email}</td>
+                    <td className="px-4 py-3">{doctor.location}</td>
+                    <td className="px-4 py-3 text-center">
+                      <Tag type="blue" text="推荐" />
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex justify-center">
+                        <ToggleSwitch checked={doctor.isEnabled} />
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-center gap-2">
+                        <Button variant="primary" icon={<Edit size={12} />} text="编辑" />
+                        <Button variant="warning" icon={<Lock size={12} />} text="重置密码" />
+                        <Button variant="danger" icon={<Trash2 size={12} />} text="删除" />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between mt-5 text-[13px] text-gray-500">
+            <div className="flex items-center gap-2">
+              <span>共 7 条</span>
+              <div className="relative">
+                <select className="appearance-none border border-gray-300 rounded-[3px] pl-2 pr-6 py-1 bg-white focus:outline-none focus:border-[#409EFF]">
+                  <option>10条/页</option>
+                  <option>20条/页</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <button className="w-7 h-7 flex items-center justify-center border border-gray-300 rounded-[2px] bg-gray-50 text-gray-400 cursor-not-allowed">
+                &lt;
+              </button>
+              <button className="w-7 h-7 flex items-center justify-center border border-[#409EFF] bg-[#409EFF] text-white rounded-[2px]">
+                1
+              </button>
+              <button className="w-7 h-7 flex items-center justify-center border border-gray-300 rounded-[2px] bg-white hover:text-[#409EFF]">
+                &gt;
+              </button>
+              <div className="flex items-center gap-2 ml-2">
+                <span>前往</span>
+                <input type="text" defaultValue="1" className="w-10 text-center border border-gray-300 rounded-[2px] py-1 focus:outline-none focus:border-[#409EFF]" />
+                <span>页</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      );
+    };
+
+    // 5. Main App Component
+    const App = () => {
+      // Changed initial state to 'home'
+      const [activeKey, setActiveKey] = useState('home');
+      // Changed initial tabs to include 'home' by default
+      const [tabs, setTabs] = useState([
+        { key: 'home', title: '首页', closable: false }
+      ]);
+      const [sidebarOpen, setSidebarOpen] = useState(true);
+
+      const titleMap = {
+        home: '首页',
+        system: '系统管理',
+        doctor: '医生管理',
+        role: '角色管理',
+        menu: '菜单管理',
+        patient: '患者管理',
+        department: '科室管理',
+        schedule: '排班管理',
+        appointment: '预约管理',
+        record: '就诊记录',
+        news: '资讯管理',
+        feedback: '反馈管理',
+        notice: '公告管理'
+      };
+
+      const handleMenuClick = (key, title) => {
+        setActiveKey(key);
+        
+        // Add to tabs if not exists
+        if (!tabs.find(t => t.key === key)) {
+          setTabs([...tabs, { key, title, closable: key !== 'home' }]);
+        }
+      };
+
+      const handleTabClick = (key) => {
+        setActiveKey(key);
+      };
+
+      const handleTabClose = (key) => {
+        const newTabs = tabs.filter(t => t.key !== key);
+        setTabs(newTabs);
+        
+        // If we closed the active tab, switch to the last one
+        if (activeKey === key && newTabs.length > 0) {
+          setActiveKey(newTabs[newTabs.length - 1].key);
+        }
+      };
+
+      const getBreadcrumbs = () => {
+        if (activeKey === 'home') {
+          return ['首页'];
+        }
+        if (activeKey === 'doctor' || activeKey === 'role' || activeKey === 'menu') {
+          return ['首页', '系统管理', titleMap[activeKey]];
+        }
+        return ['首页', titleMap[activeKey]];
+      };
+
+      return (
+        <div className="flex h-screen w-full bg-[#f0f2f5] overflow-hidden font-sans">
+          <Sidebar 
+            activeKey={activeKey} 
+            onMenuClick={handleMenuClick} 
+          />
+          <div className="flex-1 flex flex-col min-w-0">
+            <Header 
+              breadcrumbs={getBreadcrumbs()} 
+              sidebarOpen={sidebarOpen}
+              toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+            />
+            <TagsView 
+              tabs={tabs} 
+              activeKey={activeKey}
+              onTabClick={handleTabClick}
+              onTabClose={handleTabClose}
+            />
+            <main className="flex-1 overflow-y-auto p-4">
+              {activeKey === 'doctor' ? (
+                <DoctorTable />
+              ) : activeKey === 'home' ? (
+                 <div className="flex items-center justify-center h-full text-gray-400 bg-white rounded shadow-sm">
+                  <div className="text-center">
+                    <h2 className="text-2xl font-bold mb-2">首页</h2>
+                    <p>页面功能开发中...</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-400 bg-white rounded shadow-sm">
+                  <div className="text-center">
+                    <h2 className="text-2xl font-bold mb-2">{titleMap[activeKey]}</h2>
+                    <p>页面功能开发中...</p>
+                  </div>
+                </div>
+              )}
+            </main>
+          </div>
+        </div>
+      );
+    };
+
+    // Mount Logic
+    const rootElement = document.getElementById('root');
+    const root = createRoot(rootElement);
+    root.render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>
+    );
+  </script>
+</body>
+</html>

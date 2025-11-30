@@ -78,9 +78,9 @@
                 </div>
 
                 <div class="appointment-actions">
-                  <!-- 取消预约按钮：仅在CONFIRMED状态显示 -->
+                  <!-- 取消预约按钮：在CONFIRMED和IN_PROGRESS状态显示 -->
                   <el-button 
-                    v-if="item.status === 'CONFIRMED'" 
+                    v-if="item.status === 'CONFIRMED' || item.status === 'IN_PROGRESS'" 
                     type="danger" 
                     size="small" 
                     plain
@@ -105,17 +105,13 @@
                     </el-icon>
                     查看测试结果
                   </el-button>
-                  <!-- 已完成状态：根据是否已评价显示不同按钮 -->
-                  <el-tag v-if="item.status === 'COMPLETED' && item.hasReview" type="success" size="small" style="margin-right: 8px;">
-                    已评价
-                  </el-tag>
-                  <el-button v-if="item.status === 'COMPLETED' && item.hasReview" type="info" size="small" plain
-                    @click="viewReview(item)">
-                    查看评价
-                  </el-button>
                   <el-button v-if="item.status === 'COMPLETED' && !item.hasReview" type="primary" size="small" plain
                     @click="reviewDoctor(item)">
                     评价医生
+                  </el-button>
+                  <el-button v-if="item.status === 'COMPLETED' && item.hasReview" type="info" size="small" plain
+                    @click="viewReview(item)">
+                    查看评价
                   </el-button>
                   <el-button size="small" @click="viewDetail(item)">
                     查看详情
@@ -192,7 +188,7 @@
     <!-- 查看评价弹窗 -->
     <ReviewViewDialog
       v-model="reviewViewDialogVisible"
-      :appointment-id="selectedAppointmentForReview?.id"
+      :appointment-id="selectedAppointmentForViewReview?.id"
     />
   </div>
 </template>
@@ -224,6 +220,7 @@ const exportLoading = ref(false)
 const appointments = ref([])
 const selectedAppointment = ref(null)
 const selectedAppointmentForReview = ref(null)
+const selectedAppointmentForViewReview = ref(null)
 const total = ref(0)
 
 // 查询参数
@@ -246,29 +243,34 @@ const loadAppointments = async () => {
       filteredData = filteredData.filter(a => a.status === queryParams.status)
     }
 
-    // 检查"就诊中"状态的预约是否已有测试记录，以及"已完成"状态的预约是否已有评价
+    // 检查"就诊中"状态的预约是否已有测试记录
+    // 检查"已完成"状态的预约是否已有评价
     for (const appointment of filteredData) {
       if (appointment.status === 'IN_PROGRESS') {
         try {
           const testRes = await checkTestByAppointment(appointment.id)
           appointment.hasTest = testRes.code === 200 && testRes.data === true
         } catch (error) {
+
           appointment.hasTest = false
         }
       } else {
         appointment.hasTest = false
       }
-
-      // 检查已完成状态的预约是否已有评价
+      
+      // 检查是否已有评价
       if (appointment.status === 'COMPLETED') {
         try {
           const reviewRes = await getReviewByAppointmentId(appointment.id)
           appointment.hasReview = reviewRes.code === 200 && reviewRes.data !== null
+          appointment.reviewId = appointment.hasReview ? reviewRes.data.id : null
         } catch (error) {
           appointment.hasReview = false
+          appointment.reviewId = null
         }
       } else {
         appointment.hasReview = false
+        appointment.reviewId = null
       }
     }
 
@@ -377,6 +379,12 @@ const reviewDoctor = (appointment) => {
   reviewDialogVisible.value = true
 }
 
+// 查看评价
+const viewReview = (appointment) => {
+  selectedAppointmentForViewReview.value = appointment
+  reviewViewDialogVisible.value = true
+}
+
 // 评价成功回调
 const handleReviewSuccess = () => {
   // 重新加载预约列表
@@ -398,12 +406,6 @@ const viewTestResult = (appointment) => {
   router.push({
     path: '/patient/constitution/history'
   })
-}
-
-// 查看评价
-const viewReview = (appointment) => {
-  selectedAppointmentForReview.value = appointment
-  reviewViewDialogVisible.value = true
 }
 
 // 格式化日期

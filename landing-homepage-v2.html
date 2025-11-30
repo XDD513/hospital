@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>中医医院预约与体质评估首页</title>
+    <meta name="description" content="患者一站式入口：预约挂号、体质评估、找医生、健康档案与消息提醒。" />
+    <meta property="og:title" content="中医医院预约与体质评估首页" />
+    <meta property="og:description" content="更快预约、更懂体质、更易坚持。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="http://localhost:8000/landing-homepage-v2.html" />
+    <style>
+      :root {
+        --primary: #10b981;
+        --secondary: #409EFF;
+        --bg: #f8fafc;
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --card: #ffffff;
+        --radius: 14px;
+        --shadow-1: 0 8px 24px rgba(15,23,42,0.08);
+        --shadow-2: 0 16px 32px rgba(15,23,42,0.12);
+        --space-sm: 12px;
+        --space-md: 16px;
+        --space-lg: 24px;
+        --space-xl: 32px;
+      }
+
+      /* 主题切换：翡翠、靛蓝、琥珀、患者（柔和） */
+      body.theme-emerald { --primary: #10b981; --secondary:#409EFF; }
+      body.theme-indigo  { --primary: #6366f1; --secondary:#06b6d4; }
+      body.theme-amber   { --primary: #f59e0b; --secondary:#ef4444; }
+      body.theme-patient { --primary: #3BB273; --secondary:#6CC3D5; }
+
+      * { box-sizing: border-box; }
+      html, body { scroll-behavior: smooth; }
+      body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Microsoft YaHei', sans-serif; background:
+        radial-gradient(1200px 600px at 12% -10%, rgba(59,178,115,.12), transparent 60%),
+        radial-gradient(1100px 500px at 88% 0%, rgba(108,195,213,.12), transparent 60%),
+        linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+        color: var(--text);
+      }
+      a { text-decoration: none; color: inherit; }
+      .container { max-width: 1200px; margin: 0 auto; padding: var(--space-md); }
+      .nav { position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,0.85); border-bottom: 1px solid var(--border); backdrop-filter: saturate(160%) blur(8px); box-shadow: 0 6px 16px rgba(15,23,42,0.06); }
+      .nav-inner { height: 64px; display: flex; align-items: center; justify-content: space-between; }
+      .brand { display:flex; align-items:center; gap:10px; font-weight: 900; letter-spacing: .2px; }
+      .hero { background: linear-gradient(135deg, #ecfeff 0%, #f8fafc 60%); }
+      .hero-inner { display:grid; grid-template-columns: 1.1fr 0.9fr; gap: var(--space-xl); align-items:center; padding: var(--space-xl) 0; }
+      .headline { font-size: 40px; font-weight: 900; margin: 0 0 var(--space-sm) 0; line-height: 1.2; }
+      .subhead { color: var(--muted); font-size: 18px; margin-bottom: var(--space-md); }
+      .mesh { position: relative; }
+      .mesh::before { content:""; position:absolute; inset:-40px -80px -40px -80px; pointer-events:none; background:
+        radial-gradient(600px 300px at 10% 0%, rgba(99,102,241,.15), transparent 60%),
+        radial-gradient(600px 300px at 90% 10%, rgba(16,185,129,.18), transparent 60%),
+        radial-gradient(500px 250px at 50% 90%, rgba(64,158,255,.16), transparent 70%);
+        filter: blur(10px);
+      }
+      .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 16px; border-radius:999px; border:1px solid var(--border); background:#fff; color: var(--text); font-weight: 700; box-shadow: var(--shadow-1); }
+      .btn.primary { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color:#fff; border-color: transparent; }
+      .grid-4 { display:grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-lg); }
+      .grid-3 { display:grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-lg); }
+      .card { background: var(--card); border:1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-1); overflow:hidden; transition: transform .25s ease, box-shadow .25s ease; }
+      .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-2); }
+      .card-content { padding: var(--space-md); }
+      .section { padding: 36px 0; }
+      .section.alt { background: linear-gradient(180deg, #f9fbfc 0%, #ffffff 100%); }
+      .section-title { font-size: 22px; font-weight: 900; display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--space-md); }
+      .section-header { text-align: center; margin-bottom: var(--space-lg); }
+      .section-header h2 { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: .2px; }
+      .section-header p { margin: 6px 0 0; color: var(--muted); }
+      .section-header .accent { width: 80px; height: 4px; border-radius: 2px; margin: var(--space-sm) auto 0; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); }
+      .muted { color: var(--muted); }
+      .feature-head { display:flex; align-items:center; gap:8px; font-weight: 800; }
+      .icon-circle { width: 44px; height: 44px; border-radius: 999px; background: #ecfeff; display:flex; align-items:center; justify-content:center; color: var(--secondary); }
+      .chip { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#fff; border:1px solid var(--border); color: var(--muted); }
+      .badge { display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:#fff; color: var(--muted); }
+      .cta-band { margin-top: var(--space-md); border-radius: var(--radius); padding: var(--space-md); background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color:#fff; display:flex; justify-content:space-between; align-items:center; box-shadow: var(--shadow-2); }
+      .wave svg { display:block; width:100%; height:auto; }
+      .anchor { scroll-margin-top: 72px; }
+      @keyframes float {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+        100% { transform: translateY(0); }
+      }
+      .float { animation: float 4s ease-in-out infinite; }
+      .footer { border-top: 1px solid var(--border); background:#fff; color:#64748b; font-size:13px; }
+      img.hero { width: 100%; max-width: 480px; border-radius: 12px; object-fit: cover; box-shadow: var(--shadow-1); }
+      @media (max-width: 992px) { .hero-inner { grid-template-columns: 1fr; } .grid-4 { grid-template-columns: repeat(2,1fr);} }
+      @media (max-width: 768px) { .grid-4, .grid-3 { grid-template-columns: 1fr; } .headline { font-size: 30px; } .section { padding: 28px 0; } }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.4.1/dist/index.css" />
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.4.1/dist/index.full.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.1.0/dist/index.iife.min.js"></script>
+  </head>
+  <body>
+    <div id="app" class="theme-patient">
+      <!-- 顶部导航 -->
+      <header class="nav">
+        <div class="container nav-inner">
+          <div class="brand">
+            <span>中医医院预约平台</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn" @click="scrollTo('quick')">在线挂号</button>
+            <button class="btn" @click="scrollTo('tizhi')">体质辨识</button>
+            <button class="btn" @click="scrollTo('departments')">找科室</button>
+            <button class="btn" @click="scrollTo('doctors')">找医生</button>
+            <button class="btn primary" @click="scrollTo('cta')">立即开始</button>
+            <!-- 主题切换 -->
+            <span class="chip" style="margin-left:8px;">主题：
+              <span title="翡翠" style="width:14px;height:14px;border-radius:999px;background:#10b981;display:inline-block;cursor:pointer;margin-left:8px" onclick="window._setTheme('emerald')"></span>
+              <span title="靛蓝" style="width:14px;height:14px;border-radius:999px;background:#6366f1;display:inline-block;cursor:pointer;margin-left:6px" onclick="window._setTheme('indigo')"></span>
+              <span title="琥珀" style="width:14px;height:14px;border-radius:999px;background:#f59e0b;display:inline-block;cursor:pointer;margin-left:6px" onclick="window._setTheme('amber')"></span>
+              <span title="患者" style="width:14px;height:14px;border-radius:999px;background:#3BB273;display:inline-block;cursor:pointer;margin-left:6px" onclick="window._setTheme('patient')"></span>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <!-- 首屏 -->
+      <section class="hero mesh">
+        <div class="container hero-inner">
+          <div>
+            <h1 class="headline">中医医院患者服务门户</h1>
+            <p class="subhead">在线挂号、体质评估、找医生与健康档案，一站式便捷就医</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn primary" @click="startAppointment">立即挂号</button>
+              <button class="btn" @click="startTest">查找科室</button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-sm);max-width:560px;margin-top:var(--space-md)">
+              <span class="chip">✅ 一分钟完成预约</span>
+              <span class="chip">✅ 九种体质智能评估</span>
+              <span class="chip">✅ 食疗与穴位个性化建议</span>
+              <span class="chip">✅ 打卡与趋势可视化</span>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:16px;">
+              <span class="badge">服务患者 50w+</span>
+              <span class="badge">系统可用性 99.9%</span>
+              <span class="badge">平均挂号耗时 3s</span>
+            </div>
+          </div>
+          <div>
+            <img class="hero float" src="hospital-frontend/public/uploads/multigrain_porridge.jpg" alt="示意图" />
+          </div>
+        </div>
+      </section>
+      <div class="wave">
+        <svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path fill="#f8fafc" d="M0,32 C240,80 360,0 720,32 C1080,64 1200,16 1440,48 L1440,80 L0,80 Z"></path></svg>
+      </div>
+
+      <!-- 客户徽标带（企业信任） -->
+      <section class="section anchor" id="logos">
+        <div class="container">
+          <div class="section-header">
+            <h2>行业伙伴</h2>
+            <p>与医疗机构共同提升就医体验</p>
+            <div class="accent"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:20px;align-items:center;">
+            <div class="card" style="padding:12px;text-align:center;">A医院</div>
+            <div class="card" style="padding:12px;text-align:center;">B医院</div>
+            <div class="card" style="padding:12px;text-align:center;">C医院</div>
+            <div class="card" style="padding:12px;text-align:center;">D医院</div>
+            <div class="card" style="padding:12px;text-align:center;">E医院</div>
+            <div class="card" style="padding:12px;text-align:center;">F医院</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 预约数据快照（增强信息密度与色彩） -->
+      <section class="section alt anchor" id="stats">
+        <div class="container">
+          <div class="section-header">
+            <h2>今日服务快照</h2>
+            <p>实时号源与体质评估进度概览</p>
+            <div class="accent"></div>
+          </div>
+          <div class="grid-3">
+            <div class="card" style="background:linear-gradient(135deg, rgba(16,185,129,.12), #fff);">
+              <div class="card-content"><div class="feature-head"><span class="icon-circle">🗓️</span><span>可预约号源</span></div><div style="margin-top:6px;font-weight:900;font-size:22px;color:#0f172a">128</div><div class="muted">按科室与医生分配</div></div>
+            </div>
+            <div class="card" style="background:linear-gradient(135deg, rgba(64,158,255,.12), #fff);">
+              <div class="card-content"><div class="feature-head"><span class="icon-circle">⏱️</span><span>平均等待时长</span></div><div style="margin-top:6px;font-weight:900;font-size:22px;color:#0f172a">7 分钟</div><div class="muted">高峰时段智能分流</div></div>
+            </div>
+            <div class="card" style="background:linear-gradient(135deg, rgba(245,158,11,.12), #fff);">
+              <div class="card-content"><div class="feature-head"><span class="icon-circle">🧭</span><span>近7天完成评估</span></div><div style="margin-top:6px;font-weight:900;font-size:22px;color:#0f172a">1,236</div><div class="muted">体质报告与建议已生成</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 快速预约 -->
+      <section class="section alt anchor" id="quick">
+        <div class="container">
+          <div class="section-header">
+            <h2>快速预约</h2>
+            <p>选择科室与医生，提交后将收到提醒</p>
+            <div class="accent"></div>
+          </div>
+          <div class="card" style="padding:16px;">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-md);">
+              <el-select v-model="form.department" placeholder="选择科室">
+                <el-option label="中医内科" value="中医内科" />
+                <el-option label="针灸推拿" value="针灸推拿" />
+                <el-option label="养生咨询" value="养生咨询" />
+              </el-select>
+              <el-select v-model="form.doctor" placeholder="选择医生">
+                <el-option v-for="doc in doctors" :key="doc.name" :label="doc.name" :value="doc.name" />
+              </el-select>
+              <el-date-picker v-model="form.date" type="date" placeholder="选择日期" />
+              <el-select v-model="form.type" placeholder="就诊方式">
+                <el-option label="门诊" value="门诊" />
+                <el-option label="远程问诊" value="远程问诊" />
+              </el-select>
+            </div>
+            <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;margin-top:var(--space-md);">
+              <el-button @click="resetAppointment">重置</el-button>
+              <el-button type="primary" @click="bookAppointment">预约</el-button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="wave">
+        <svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path fill="#ffffff" d="M0,32 C240,80 360,0 720,32 C1080,64 1200,16 1440,48 L1440,80 L0,80 Z"></path></svg>
+      </div>
+
+      <!-- 核心功能 -->
+      <section class="section anchor" id="features">
+        <div class="container">
+          <div class="section-header">
+            <h2>患者核心功能</h2>
+            <p>预约挂号、体质评估、药膳与穴位、健康档案</p>
+            <div class="accent"></div>
+          </div>
+          <div class="grid-4">
+            <div class="card"><div class="card-content"><div class="feature-head"><span class="icon-circle"><span>🗓️</span></span><span>预约挂号</span></div><div class="muted">选科室/医生/日期，消息提醒不遗漏</div></div></div>
+            <div class="card"><div class="card-content"><div class="feature-head"><span class="icon-circle"><span>🧭</span></span><span>体质评估</span></div><div class="muted">问卷生成体质类型与调养建议</div></div></div>
+            <div class="card"><div class="card-content"><div class="feature-head"><span class="icon-circle"><span>🍲</span></span><span>药膳与穴位</span></div><div class="muted">结合季节与体质提供食疗与穴位方案</div></div></div>
+            <div class="card"><div class="card-content"><div class="feature-head"><span class="icon-circle"><span>📊</span></span><span>健康档案</span></div><div class="muted">睡眠/运动/心情打卡与趋势</div></div></div>
+          </div>
+        </div>
+      </section>
+      <div class="wave">
+        <svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path fill="#f9fbfc" d="M0,32 C240,80 360,0 720,32 C1080,64 1200,16 1440,48 L1440,80 L0,80 Z"></path></svg>
+      </div>
+
+      <!-- 特色科室 -->
+      <section class="section anchor" id="departments">
+        <div class="container">
+          <div class="section-header">
+            <h2>特色科室</h2>
+            <p>围绕中医核心能力打造就诊路径</p>
+            <div class="accent"></div>
+          </div>
+          <div class="grid-4">
+            <div class="card"><div class="card-content"><div class="feature-head"><span class="icon-circle">🩺</span><span>中医内科</span></div><div class="muted">辨证施治，重点调理脾胃与气机</div></div></div>
+            <div class="card"><div class="card-content"><div class="feature-head"><span class="icon-circle">🪡</span><span>针灸推拿</span></div><div class="muted">经络疏通，缓解颈肩腰腿痛与亚健康</div></div></div>
+            <div class="card"><div class="card-content"><div class="feature-head"><span class="icon-circle">🌿</span><span>治未病中心</span></div><div class="muted">体质评估与四季调养，预防为主</div></div></div>
+            <div class="card"><div class="card-content"><div class="feature-head"><span class="icon-circle">🦴</span><span>骨伤科</span></div><div class="muted">中医正骨与功能康复，快速恢复</div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 推荐医生 -->
+      <section class="section alt anchor" id="doctors">
+        <div class="container">
+          <div class="section-header">
+            <h2>推荐医生</h2>
+            <p>资深中医师坐诊，擅长方向清晰</p>
+            <div class="accent"></div>
+          </div>
+          <div class="grid-3">
+            <div class="card"><div class="card-content"><strong>张主任 · 中医内科</strong><div class="muted" style="margin-top:6px;">脾胃调理/气虚体质 · 评分 4.8/5</div><div style="margin-top:8px;"><button class="btn" @click="startAppointment">预约</button></div></div></div>
+            <div class="card"><div class="card-content"><strong>李医师 · 针灸推拿</strong><div class="muted" style="margin-top:6px;">颈肩腰腿痛/经络疏通 · 评分 4.7/5</div><div style="margin-top:8px;"><button class="btn" @click="startAppointment">预约</button></div></div></div>
+            <div class="card"><div class="card-content"><strong>王医师 · 治未病</strong><div class="muted" style="margin-top:6px;">体质评估/四季调养 · 评分 4.9/5</div><div style="margin-top:8px;"><button class="btn" @click="startAppointment">预约</button></div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 企业级解决方案 -->
+      <section class="section anchor" id="solutions">
+        <div class="container">
+          <div class="section-header">
+            <h2>企业级解决方案</h2>
+            <p>适配不同规模与场景的医疗机构</p>
+            <div class="accent"></div>
+          </div>
+          <div class="grid-4">
+            <div class="card"><div class="card-content"><div class="feature-head"><span class="icon-circle">🏥</span><span>医院集团</span></div><div class="muted">多院区号源统一管理、跨院区预约与分级分诊</div></div></div>
+            <div class="card"><div class="card-content"><div class="feature-head"><span class="icon-circle">🧪</span><span>专科中心</span></div><div class="muted">专科排班与随访体系，提升复诊效率与体验</div></div></div>
+            <div class="card"><div class="card-content"><div class="feature-head"><span class="icon-circle">💼</span><span>门诊部</span></div><div class="muted">轻量预约与提醒、数据看板与运营洞察</div></div></div>
+            <div class="card"><div class="card-content"><div class="feature-head"><span class="icon-circle">🌐</span><span>互联网医院</span></div><div class="muted">线上号源与远程问诊、消息通知与支付对接</div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 合规与安全 -->
+      <section class="section alt anchor" id="compliance">
+        <div class="container">
+          <div class="section-header">
+            <h2>合规与安全</h2>
+            <p>隐私合规与安全审计保障医疗数据安全</p>
+            <div class="accent"></div>
+          </div>
+          <div class="grid-4">
+            <div class="card"><div class="card-content"><strong>隐私与合规</strong><div class="muted" style="margin-top:6px;">访问控制、数据脱敏与合规流程</div></div></div>
+            <div class="card"><div class="card-content"><strong>加密传输与存储</strong><div class="muted" style="margin-top:6px;">全链路加密与安全存储策略</div></div></div>
+            <div class="card"><div class="card-content"><strong>审计与日志</strong><div class="muted" style="margin-top:6px;">关键操作留痕、异常告警与追踪</div></div></div>
+            <div class="card"><div class="card-content"><strong>高可用与SLA</strong><div class="muted" style="margin-top:6px;">99.9%可用性与自动化监控</div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 客户案例 -->
+      <section class="section anchor" id="cases">
+        <div class="container">
+          <div class="section-header">
+            <h2>客户案例</h2>
+            <p>以患者体验为中心的数字化升级</p>
+            <div class="accent"></div>
+          </div>
+          <div class="grid-3">
+            <div class="card"><div class="card-content"><strong>某三甲医院</strong><div class="muted" style="margin-top:6px;">挂号平均等待缩短 42%，复诊转化提升 30%</div><div style="color:#0f172a;margin-top:10px;">“预约体验显著改善，患者满意度提升。”</div></div></div>
+            <div class="card"><div class="card-content"><strong>某互联网医院</strong><div class="muted" style="margin-top:6px;">远程问诊占比提升 55%，消息触达率 98%</div><div style="color:#0f172a;margin-top:10px;">“线上就诊与提醒体系更高效。”</div></div></div>
+            <div class="card"><div class="card-content"><strong>某专科中心</strong><div class="muted" style="margin-top:6px;">随访完成率提升 26%，患者回访更及时</div><div style="color:#0f172a;margin-top:10px;">“随访流程统一，人员负担更低。”</div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 资源中心 -->
+      <section class="section alt anchor" id="resources">
+        <div class="container">
+          <div class="section-header">
+            <h2>资源中心</h2>
+            <p>白皮书、接入指南与最佳实践</p>
+            <div class="accent"></div>
+          </div>
+          <div class="grid-3">
+            <div class="card"><div class="card-content"><strong>预约体系白皮书</strong><div class="muted" style="margin-top:6px;">从号源管理到消息触达的全流程最佳实践</div><div style="margin-top:10px;"><button class="btn">下载</button></div></div></div>
+            <div class="card"><div class="card-content"><strong>系统接入指南</strong><div class="muted" style="margin-top:6px;">快速启用与配置，低成本上线</div><div style="margin-top:10px;"><button class="btn">查看</button></div></div></div>
+            <div class="card"><div class="card-content"><strong>成功案例集</strong><div class="muted" style="margin-top:6px;">行业标杆方案与效果数据</div><div style="margin-top:10px;"><button class="btn">阅读</button></div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 联系销售 -->
+      <section class="section anchor" id="contact">
+        <div class="container">
+          <div class="cta-band">
+            <strong>需要企业级方案与演示？联系我们</strong>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn primary" @click="startAppointment">预约演示</button>
+              <button class="btn" @click="scrollTo('resources')">查看资料</button>
+              <span class="chip">📞 010-8888 6666</span>
+              <span class="chip">✉️ enterprise@hospital.com</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 热门药膳（项目特色） -->
+      <section class="section alt anchor" id="tizhi">
+        <div class="container">
+          <div class="section-header">
+            <h2>热门药膳推荐</h2>
+            <p>结合季节与体质，提供易做且实用的食疗方案</p>
+            <div class="accent"></div>
+          </div>
+          <div class="grid-3">
+            <div class="card"><img src="hospital-frontend/public/uploads/huangqi_chicken_soup.jpg" alt="黄芪鸡汤" style="width:100%;height:180px;object-fit:cover;border-bottom:1px solid var(--border);"><div class="card-content"><strong>黄芪鸡汤</strong><div class="muted" style="margin-top:6px;">补气固表 · 秋季/气虚质</div></div></div>
+            <div class="card"><img src="hospital-frontend/public/uploads/winter_melon_soup.jpg" alt="冬瓜汤" style="width:100%;height:180px;object-fit:cover;border-bottom:1px solid var(--border);"><div class="card-content"><strong>冬瓜汤</strong><div class="muted" style="margin-top:6px;">清热利尿 · 夏季/湿热质</div></div></div>
+            <div class="card"><img src="hospital-frontend/public/uploads/multigrain_porridge.jpg" alt="四季调养粥" style="width:100%;height:180px;object-fit:cover;border-bottom:1px solid var(--border);"><div class="card-content"><strong>四季调养粥</strong><div class="muted" style="margin-top:6px;">健脾益气 · 四季/平和质</div></div></div>
+          </div>
+          <div class="cta-band" id="cta"><strong>开启你的个性化调养之旅</strong><div style="display:flex;gap:8px;"><button class="btn primary" @click="startTest">体质评估</button><button class="btn" @click="startAppointment">立即预约</button></div></div>
+        </div>
+      </section>
+
+      <!-- 页脚 -->
+      <footer class="footer">
+        <div class="container" style="height:64px;display:flex;align-items:center;justify-content:space-between;">
+          <span>© 2025 中医医院预约平台 · 预览页面</span>
+          <span class="muted">隐私与安全合规 · 高可用与提醒</span>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      const { createApp, reactive } = Vue
+      const app = createApp({
+        setup() {
+          /**
+           * 函数：scrollTo
+           * 作用：平滑滚动到指定锚点
+           * 入参：sectionId 字符串
+           * 返回：无
+           */
+          const scrollTo = (sectionId) => {
+            const el = document.getElementById(sectionId)
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+
+          /**
+           * 表单状态：快速预约
+           */
+          const form = reactive({ department: '', doctor: '', date: '', type: '' })
+          const doctors = reactive([
+            { name: '张医生', dept: '中医内科' },
+            { name: '李医生', dept: '针灸推拿' },
+            { name: '王医生', dept: '养生咨询' }
+          ])
+
+          /**
+           * 函数：startAppointment
+           * 作用：滚动到预约区块
+           * 入参：无
+           * 返回：无
+           */
+          const startAppointment = () => scrollTo('quick')
+
+          /**
+           * 函数：startTest
+           * 作用：滚动到体质评估/药膳区块
+           * 入参：无
+           * 返回：无
+           */
+          const startTest = () => scrollTo('tizhi')
+
+          /**
+           * 函数：resetAppointment
+           * 作用：重置快速预约表单
+           * 入参：无
+           * 返回：无
+           */
+          const resetAppointment = () => {
+            form.department = ''
+            form.doctor = ''
+            form.date = ''
+            form.type = ''
+          }
+
+          /**
+           * 函数：bookAppointment
+           * 作用：提交预约（预览逻辑）
+           * 入参：无
+           * 返回：无
+           */
+          const bookAppointment = () => {
+            if (!form.department || !form.doctor || !form.date || !form.type) {
+              ElementPlus.ElMessage.warning('请完整填写预约信息')
+              return
+            }
+            ElementPlus.ElMessage.success(`已提交预约：${form.department} / ${form.doctor} / ${form.type}`)
+          }
+
+          /**
+           * 函数：setTheme
+           * 作用：切换页面主题（emerald/indigo/amber）
+           * 入参：themeName 字符串
+           * 返回：无
+           */
+          const setTheme = (themeName) => {
+            const root = document.getElementById('app')
+            if (!root) return
+            root.classList.remove('theme-emerald', 'theme-indigo', 'theme-amber')
+            root.classList.add(`theme-${themeName}`)
+          }
+
+          // 暴露全局以便顶部按钮调用
+          window._setTheme = setTheme
+
+          return { scrollTo, form, doctors, startAppointment, startTest, resetAppointment, bookAppointment, setTheme }
+        }
+      })
+
+      app.use(ElementPlus)
+      for (const [key, component] of Object.entries(ElementPlusIconsVue)) { app.component(key, component) }
+      app.mount('#app')
+    </script>
+  </body>
+  </html>
