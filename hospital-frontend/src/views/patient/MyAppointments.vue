@@ -135,8 +135,15 @@
 
       <!-- 分页 -->
       <div class="pagination" v-if="total > 0">
-        <el-pagination v-model:current-page="queryParams.page" v-model:page-size="queryParams.pageSize" :total="total"
-          layout="total, prev, pager, next" @current-change="loadAppointments" />
+        <el-pagination 
+          :current-page="queryParams.page" 
+          :page-size="queryParams.pageSize" 
+          :total="total"
+          :page-sizes="[10, 20, 30, 50]"
+          layout="total, sizes, prev, pager, next, jumper" 
+          @size-change="handleSizeChange"
+          @current-change="handlePageChange" 
+        />
       </div>
     </el-card>
 
@@ -229,7 +236,7 @@ const appointments = ref([])
 const selectedAppointment = ref(null)
 const selectedAppointmentForReview = ref(null)
 const selectedAppointmentForViewReview = ref(null)
-const total = ref(0)
+const total = ref(0) // 确保是 Number 类型
 
 // 查询参数
 const queryParams = reactive({
@@ -242,18 +249,50 @@ const queryParams = reactive({
 const loadAppointments = async () => {
   loading.value = true
   try {
-    const res = await getPatientAppointments()
-
-    let filteredData = res.data || []
-
-    // 按状态筛选
+    // 构建请求参数
+    const params = {
+      page: queryParams.page,
+      pageSize: queryParams.pageSize
+    }
+    
+    // 如果有状态筛选，添加到参数中
     if (queryParams.status) {
-      filteredData = filteredData.filter(a => a.status === queryParams.status)
+      params.status = queryParams.status
+    }
+
+    const res = await getPatientAppointments(params)
+
+    // 处理分页数据
+    let appointmentList = []
+    if (res.data && res.data.records) {
+      // 分页结果
+      appointmentList = res.data.records || []
+      // 确保 total 是 Number 类型
+      const totalValue = res.data.total
+      total.value = typeof totalValue === 'number' ? totalValue : Number(totalValue) || 0
+      
+      // 调试信息
+      if (import.meta.env.DEV) {
+        console.log('分页数据:', {
+          page: queryParams.page,
+          pageSize: queryParams.pageSize,
+          records: appointmentList.length,
+          total: total.value,
+          totalType: typeof total.value
+        })
+      }
+    } else if (Array.isArray(res.data)) {
+      // 兼容旧接口（返回数组）
+      appointmentList = res.data
+      total.value = res.data.length
+    } else {
+      appointmentList = []
+      total.value = 0
     }
 
     // 检查"就诊中"状态的预约是否已有测试记录
     // 检查"已完成"状态的预约是否已有评价
-    for (const appointment of filteredData) {
+    for (const appointment of appointmentList) {
       if (appointment.status === 'IN_PROGRESS') {
         try {
           const testRes = await checkTestByAppointment(appointment.id)
@@ -285,11 +324,10 @@ const loadAppointments = async () => {
       }
     }
 
-    appointments.value = filteredData
-    total.value = filteredData.length
+    appointments.value = appointmentList
 
   } catch (error) {
-
+    console.error('加载预约列表失败:', error)
     message.error('加载预约列表失败')
   } finally {
     loading.value = false
@@ -300,6 +338,19 @@ const loadAppointments = async () => {
 const handleTabChange = (tabName) => {
   queryParams.status = tabName === 'all' ? '' : tabName
   queryParams.page = 1
+  loadAppointments()
+}
+
+// 分页大小改变
+const handleSizeChange = (size) => {
+  queryParams.pageSize = size
+  queryParams.page = 1
+  loadAppointments()
+}
+
+// 页码改变
+const handlePageChange = (page) => {
+  queryParams.page = page
   loadAppointments()
 }
 

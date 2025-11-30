@@ -22,12 +22,13 @@ export function cancelAppointment(id) {
 }
 
 /**
- * 查询患者预约列表
+ * 查询患者预约列表（支持分页）
  */
-export function getPatientAppointments() {
+export function getPatientAppointments(params) {
   return request({
     url: '/appointment/patient/list',
-    method: 'get'
+    method: 'get',
+    params
   })
 }
 
