@@ -248,6 +248,18 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review> impleme
         return result;
     }
     
+    @Override
+    public Review getReviewByAppointmentId(Long appointmentId) {
+        log.info("根据预约ID获取评价，预约ID：{}", appointmentId);
+        
+        // 使用MyBatis Plus的lambda查询
+        Review review = lambdaQuery()
+            .eq(Review::getAppointmentId, appointmentId)
+            .one();
+        
+        return review;
+    }
+    
     /**
      * 清理头像URL（移除查询参数等）
      */

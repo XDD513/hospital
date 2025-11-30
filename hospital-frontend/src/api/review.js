@@ -55,3 +55,11 @@ export function getAllReviews(params) {
     params
   })
 }
+
+// 根据预约ID获取评价
+export function getReviewByAppointmentId(appointmentId) {
+  return request({
+    url: `/review/appointment/${appointmentId}`,
+    method: 'get'
+  })
+}
