@@ -78,9 +78,9 @@
                 </div>
 
                 <div class="appointment-actions">
-                  <!-- 取消预约按钮：在CONFIRMED和IN_PROGRESS状态显示 -->
+                  <!-- 取消预约按钮：仅在CONFIRMED状态显示 -->
                   <el-button 
-                    v-if="item.status === 'CONFIRMED' || item.status === 'IN_PROGRESS'" 
+                    v-if="item.status === 'CONFIRMED'" 
                     type="danger" 
                     size="small" 
                     plain
@@ -105,7 +105,15 @@
                     </el-icon>
                     查看测试结果
                   </el-button>
-                  <el-button v-if="item.status === 'COMPLETED'" type="primary" size="small" plain
+                  <!-- 已完成状态：根据是否已评价显示不同按钮 -->
+                  <el-tag v-if="item.status === 'COMPLETED' && item.hasReview" type="success" size="small" style="margin-right: 8px;">
+                    已评价
+                  </el-tag>
+                  <el-button v-if="item.status === 'COMPLETED' && item.hasReview" type="info" size="small" plain
+                    @click="viewReview(item)">
+                    查看评价
+                  </el-button>
+                  <el-button v-if="item.status === 'COMPLETED' && !item.hasReview" type="primary" size="small" plain
                     @click="reviewDoctor(item)">
                     评价医生
                   </el-button>
@@ -180,6 +188,12 @@
       :appointment="selectedAppointmentForReview"
       @success="handleReviewSuccess"
     />
+
+    <!-- 查看评价弹窗 -->
+    <ReviewViewDialog
+      v-model="reviewViewDialogVisible"
+      :appointment-id="selectedAppointmentForReview?.id"
+    />
   </div>
 </template>
 
@@ -191,7 +205,9 @@ import { ElMessageBox } from 'element-plus'
 import { Close, Document, Calendar, Clock, Location, Money, Plus, Download } from '@element-plus/icons-vue'
 import { getPatientAppointments, cancelAppointment, exportPatientAppointments } from '@/api/appointment'
 import { checkTestByAppointment } from '@/api/constitution'
+import { getReviewByAppointmentId } from '@/api/review'
 import ReviewDialog from '@/components/patient/ReviewDialog.vue'
+import ReviewViewDialog from '@/components/patient/ReviewViewDialog.vue'
 import dayjs from 'dayjs'
 
 const router = useRouter()
@@ -201,6 +217,7 @@ const activeTab = ref('all')
 const loading = ref(false)
 const detailVisible = ref(false)
 const reviewDialogVisible = ref(false)
+const reviewViewDialogVisible = ref(false)
 const exportLoading = ref(false)
 
 // 数据
@@ -229,18 +246,29 @@ const loadAppointments = async () => {
       filteredData = filteredData.filter(a => a.status === queryParams.status)
     }
 
-    // 检查"就诊中"状态的预约是否已有测试记录
+    // 检查"就诊中"状态的预约是否已有测试记录，以及"已完成"状态的预约是否已有评价
     for (const appointment of filteredData) {
       if (appointment.status === 'IN_PROGRESS') {
         try {
           const testRes = await checkTestByAppointment(appointment.id)
           appointment.hasTest = testRes.code === 200 && testRes.data === true
         } catch (error) {
-
           appointment.hasTest = false
         }
       } else {
         appointment.hasTest = false
+      }
+
+      // 检查已完成状态的预约是否已有评价
+      if (appointment.status === 'COMPLETED') {
+        try {
+          const reviewRes = await getReviewByAppointmentId(appointment.id)
+          appointment.hasReview = reviewRes.code === 200 && reviewRes.data !== null
+        } catch (error) {
+          appointment.hasReview = false
+        }
+      } else {
+        appointment.hasReview = false
       }
     }
 
@@ -370,6 +398,12 @@ const viewTestResult = (appointment) => {
   router.push({
     path: '/patient/constitution/history'
   })
+}
+
+// 查看评价
+const viewReview = (appointment) => {
+  selectedAppointmentForReview.value = appointment
+  reviewViewDialogVisible.value = true
 }
 
 // 格式化日期

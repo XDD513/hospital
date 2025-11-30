@@ -53,4 +53,11 @@ public interface ReviewService extends IService<Review> {
      * @return 分页结果
      */
     IPage<Review> getAllReviews(Map<String, Object> params);
+    
+    /**
+     * 根据预约ID获取评价
+     * @param appointmentId 预约ID
+     * @return 评价信息，如果不存在则返回null
+     */
+    Review getReviewByAppointmentId(Long appointmentId);
 }
