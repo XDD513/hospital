@@ -286,73 +286,106 @@ const routes = [
     children: [
       {
         path: 'dashboard',
-        name: 'AdminDashboard',
+        name: 'AdminDashboardV2',
         component: () => import('@/views/admin/Dashboard.vue'),
-        meta: { title: '系统概览', roles: [3] }
+        meta: { title: '首页', roles: [3] }
+      },
+      // 系统管理
+      {
+        path: 'doctors',
+        name: 'AdminDoctorsV2',
+        component: () => import('@/views/admin/DoctorManage.vue'),
+        meta: { title: '医生管理', roles: [3] }
+      },
+      {
+        path: 'role',
+        name: 'AdminRoleManage',
+        component: () => import('@/views/admin/RoleManage.vue'),
+        meta: { title: '角色管理', roles: [3] }
+      },
+      {
+        path: 'menu',
+        name: 'AdminMenuManage',
+        component: () => import('@/views/admin/MenuManage.vue'),
+        meta: { title: '菜单管理', roles: [3] }
+      },
+      // 其他管理
+      {
+        path: 'patients',
+        name: 'AdminPatientsV2',
+        component: () => import('@/views/admin/UserManage.vue'),
+        meta: { title: '患者管理', roles: [3] }
       },
       {
         path: 'departments',
-        name: 'AdminDepartments',
+        name: 'AdminDepartmentsV2',
         component: () => import('@/views/admin/DepartmentManage.vue'),
-        meta: { title: '中医分类管理', roles: [3] }
-      },
-      {
-        path: 'doctors',
-        name: 'AdminDoctors',
-        component: () => import('@/views/admin/DoctorManage.vue'),
-        meta: { title: '中医师管理', roles: [3] }
-      },
-      {
-        path: 'users',
-        name: 'AdminUsers',
-        component: () => import('@/views/admin/UserManage.vue'),
-        meta: { title: '用户管理', roles: [3] }
+        meta: { title: '科室管理', roles: [3] }
       },
       {
         path: 'schedules',
-        name: 'AdminSchedules',
+        name: 'AdminSchedulesV2',
         component: () => import('@/views/admin/ScheduleManage.vue'),
         meta: { title: '排班管理', roles: [3] }
       },
       {
         path: 'appointments',
-        name: 'AdminAppointments',
+        name: 'AdminAppointmentsV2',
         component: () => import('@/views/admin/AppointmentManage.vue'),
-        meta: { title: '预约管理', roles: [3] }
+        meta: { title: '就诊记录', roles: [3] }
       },
       {
+        path: 'news',
+        name: 'AdminNewsV2',
+        component: () => import('@/views/admin/ArticleManage.vue'),
+        meta: { title: '资讯管理', roles: [3] }
+      },
+      {
+        path: 'feedback',
+        name: 'AdminFeedbackV2',
+        component: () => import('@/views/admin/FeedbackManage.vue'),
+        meta: { title: '反馈管理', roles: [3] }
+      },
+      {
+        path: 'notice',
+        name: 'AdminNoticeV2',
+        component: () => import('@/views/admin/NoticeManage.vue'),
+        meta: { title: '公告管理', roles: [3] }
+      },
+      // 系统设置相关
+      {
         path: 'settings',
-        name: 'AdminSettings',
+        name: 'AdminSettingsV2',
         component: () => import('@/views/admin/SystemSettings.vue'),
         meta: { title: '系统设置', roles: [3] }
       },
       {
         path: 'settings/test',
-        name: 'AdminSettingsTest',
+        name: 'AdminSettingsTestV2',
         component: () => import('@/views/admin/SystemSettingsTest.vue'),
         meta: { title: '设置生效检测', roles: [3] }
       },
       {
         path: 'statistics',
-        name: 'AdminStatistics',
+        name: 'AdminStatisticsV2',
         component: () => import('@/views/admin/Statistics.vue'),
         meta: { title: '数据统计', roles: [3] }
       },
       {
         path: 'logs',
-        name: 'AdminLogs',
+        name: 'AdminLogsV2',
         component: () => import('@/views/admin/OperationLogs.vue'),
         meta: { title: '操作日志', roles: [3] }
       },
       {
         path: 'dialogue',
-        name: 'AdminDialogue',
+        name: 'AdminDialogueV2',
         component: () => import('@/views/dialogue/DialogPage.vue'),
         meta: { title: '智能对话', roles: [3] }
       },
       {
         path: 'profile',
-        name: 'AdminProfile',
+        name: 'AdminProfileV2',
         component: () => import('@/views/admin/Profile.vue'),
         meta: { title: '个人信息', roles: [3] }
       }

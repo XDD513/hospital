@@ -106,8 +106,10 @@
           </el-table-column>
         </el-table>
         <!-- 分页 -->
-        <div class="admin-pagination">
-          <AdminPagination v-model:current-page="page" v-model:page-size="pageSize" :total="total" />
+        <div class="admin-pagination" v-if="total > 0">
+          <el-pagination v-model:current-page="page" v-model:page-size="pageSize" :total="total"
+            :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next" @size-change="loadDepartments"
+            @current-change="loadDepartments" />
         </div>
       </div>
     </div>
@@ -169,7 +171,6 @@ import { Refresh, Delete } from '@element-plus/icons-vue'
 import { getDepartmentList, addDepartment, updateDepartment, deleteDepartment, updateDepartmentStatus } from '@/api/department'
 import { refreshDepartmentCache } from '@/api/cache'
 import { getDoctorList } from '@/api/doctor'
-import AdminPagination from '@/components/AdminPagination.vue'
 
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -428,18 +429,5 @@ const handleBatchDelete = async () => {
 </script>
 
 <style scoped lang="scss">
-@use '@/styles/admin-variables.scss' as *;
-@use '@/styles/admin-common.scss' as *;
-
-.dept-manage-container {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-// 对话框底部按钮靠右显示
-:deep(.admin-dialog) {
-  .admin-actions {
-    justify-content: flex-end;
-  }
-}
+// 使用全局admin样式
 </style>

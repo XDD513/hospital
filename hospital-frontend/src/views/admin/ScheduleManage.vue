@@ -29,18 +29,18 @@
         <div class="admin-filter">
           <el-form inline>
             <el-form-item label="选择科室">
-              <el-select v-model="queryParams.deptId" placeholder="全部科室" clearable @change="loadSchedules">
+              <el-select v-model="queryParams.deptId" placeholder="全部科室" clearable style="width: 150px" @change="handleDeptChange">
                 <el-option v-for="dept in departments" :key="dept.id" :label="dept.deptName" :value="dept.id" />
               </el-select>
             </el-form-item>
             <el-form-item label="选择医生">
-              <el-select v-model="queryParams.doctorId" placeholder="全部医生" clearable @change="loadSchedules">
+              <el-select v-model="queryParams.doctorId" placeholder="全部医生" clearable style="width: 150px" @change="loadSchedules">
                 <el-option v-for="doctor in doctors" :key="doctor.id" :label="doctor.doctorName" :value="doctor.id" />
               </el-select>
             </el-form-item>
             <el-form-item label="日期范围">
               <el-date-picker v-model="dateRange" type="daterange" range-separator="至" start-placeholder="开始日期"
-                end-placeholder="结束日期" @change="loadSchedules" />
+                end-placeholder="结束日期" format="YYYY-MM-DD" value-format="YYYY-MM-DD" @change="loadSchedules" />
             </el-form-item>
           </el-form>
         </div>
@@ -142,9 +142,10 @@
         </el-table>
 
         <!-- 分页 -->
-        <div class="admin-pagination">
-          <AdminPagination v-model:current-page="queryParams.page" v-model:page-size="queryParams.pageSize"
-            :total="total" @size-change="loadSchedules" @current-change="loadSchedules" />
+        <div class="admin-pagination" v-if="total > 0">
+          <el-pagination v-model:current-page="queryParams.page" v-model:page-size="queryParams.pageSize" :total="total"
+            :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next" @size-change="loadSchedules"
+            @current-change="loadSchedules" />
         </div>
       </div>
     </div>
@@ -229,7 +230,6 @@ import { refreshScheduleCache } from '@/api/cache'
 import { getDepartmentList } from '@/api/department'
 import { getDoctorList, getDoctorListByDept } from '@/api/doctor'
 import dayjs from 'dayjs'
-import AdminPagination from '@/components/AdminPagination.vue'
 import { useFormValidation } from '@/composables/useFormValidation'
 
 const loading = ref(false)
@@ -279,6 +279,11 @@ const loadSchedules = async () => {
   try {
     const params = {
       ...queryParams
+    }
+    // 处理日期范围筛选
+    if (dateRange.value && dateRange.value.length === 2) {
+      params.startDate = dateRange.value[0]
+      params.endDate = dateRange.value[1]
     }
     const res = await getScheduleList(params)
 
@@ -464,6 +469,16 @@ const loadDoctors = async () => {
   }
 }
 
+// 处理科室变化
+const handleDeptChange = async () => {
+  // 清空医生选择
+  queryParams.doctorId = null
+  // 重新加载医生列表
+  await loadDoctors()
+  // 重新加载排班列表
+  await loadSchedules()
+}
+
 // 刷新缓存并重新加载数据
 const handleRefresh = async () => {
   try {
@@ -503,11 +518,5 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-@use '@/styles/admin-variables.scss' as *;
-@use '@/styles/admin-common.scss' as *;
-
-.schedule-manage-container {
-  max-width: 1400px;
-  margin: 0 auto;
-}
+// 使用全局admin样式
 </style>
