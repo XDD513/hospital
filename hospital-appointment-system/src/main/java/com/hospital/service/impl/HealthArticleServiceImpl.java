@@ -76,7 +76,6 @@ public class HealthArticleServiceImpl implements HealthArticleService {
                     try {
                         @SuppressWarnings("unchecked")
                         IPage<HealthArticle> cachedPage = (IPage<HealthArticle>) cached;
-                        log.info("从缓存获取文章列表");
                         return Result.success(cachedPage);
                     } catch (ClassCastException ignored) {}
                 }
@@ -104,7 +103,6 @@ public class HealthArticleServiceImpl implements HealthArticleService {
                 redisUtil.set(cacheKey, result, 15, java.util.concurrent.TimeUnit.MINUTES);
             }
 
-            log.info("查询文章列表：分类={}，体质={}，标签={}，精选={}，共{}条", category, constitutionType, tags, isFeatured, result.getTotal());
             return Result.success(result);
 
         } catch (Exception e) {
@@ -127,7 +125,6 @@ public class HealthArticleServiceImpl implements HealthArticleService {
                 HealthArticle article = (HealthArticle) cached;
                 // 即使从缓存获取，也要增加浏览次数
                 articleMapper.incrementViewCount(id);
-                log.info("从缓存获取文章详情：id={}", id);
                 return Result.success(article);
             }
 
@@ -178,7 +175,6 @@ public class HealthArticleServiceImpl implements HealthArticleService {
                     try {
                         @SuppressWarnings("unchecked")
                         IPage<HealthArticle> cachedPage = (IPage<HealthArticle>) cached;
-                        log.info("从缓存获取文章搜索结果");
                         return Result.success(cachedPage);
                     } catch (ClassCastException ignored) {}
                 }
@@ -437,7 +433,6 @@ public class HealthArticleServiceImpl implements HealthArticleService {
             IPage<UserArticleFavorite> favorites = userArticleFavoriteMapper.selectFavoritesByUserId(page, userId);
 
             // 转换为文章列表（这里简化处理，实际应该创建DTO）
-            log.info("查询用户收藏文章：用户ID={}，共{}条", userId, favorites.getTotal());
             
             // 注意：这里需要创建一个新的IPage<HealthArticle>对象
             // 实际项目中应该创建DTO或使用更优雅的方式处理
@@ -457,7 +452,6 @@ public class HealthArticleServiceImpl implements HealthArticleService {
         try {
             Page<HealthArticle> page = new Page<>(pageNum, pageSize);
             IPage<HealthArticle> result = articleMapper.selectByAuthorId(page, userId);
-            log.info("查询用户发布文章：用户ID={}，共{}条", userId, result.getTotal());
             return Result.success(result);
 
         } catch (Exception e) {
@@ -473,7 +467,6 @@ public class HealthArticleServiceImpl implements HealthArticleService {
     public Result<List<HealthArticle>> getRecommendedArticles(Integer limit) {
         try {
             List<HealthArticle> articles = articleMapper.selectRecommendedArticles(limit);
-            log.info("查询精选文章：共{}篇", articles.size());
             return Result.success(articles);
 
         } catch (Exception e) {
@@ -489,7 +482,6 @@ public class HealthArticleServiceImpl implements HealthArticleService {
     public Result<List<HealthArticle>> getPopularArticles(Integer limit) {
         try {
             List<HealthArticle> articles = articleMapper.selectPopularArticles(limit);
-            log.info("查询热门文章：共{}篇", articles.size());
             return Result.success(articles);
 
         } catch (Exception e) {
@@ -546,7 +538,6 @@ public class HealthArticleServiceImpl implements HealthArticleService {
                 try {
                     @SuppressWarnings("unchecked")
                     List<String> tags = (List<String>) cached;
-                    log.info("从缓存获取所有标签，共{}个", tags.size());
                     return Result.success(tags);
                 } catch (ClassCastException ignored) {}
             }
@@ -580,7 +571,6 @@ public class HealthArticleServiceImpl implements HealthArticleService {
             // 存入缓存（1小时）
             redisUtil.set(cacheKey, tagList, 1, java.util.concurrent.TimeUnit.HOURS);
             
-            log.info("获取所有标签，共{}个", tagList.size());
             return Result.success(tagList);
             
         } catch (Exception e) {

@@ -37,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -541,11 +542,29 @@ public class SystemServiceImpl implements SystemService {
                             .eq(User::getPhone, finalSearchText));
         }
 
-        // 角色类型筛选
+        // 角色类型筛选（支持单个值或多个值，多个值用逗号分隔）
         if (params.containsKey("roleType") && params.get("roleType") != null && StringUtils.hasText(params.get("roleType").toString())) {
             try {
-                Integer roleType = Integer.parseInt(params.get("roleType").toString());
-                wrapper.eq(User::getRoleType, roleType);
+                String roleTypeStr = params.get("roleType").toString();
+                // 检查是否包含逗号（多个roleType）
+                if (roleTypeStr.contains(",")) {
+                    String[] roleTypes = roleTypeStr.split(",");
+                    List<Integer> roleTypeList = new ArrayList<>();
+                    for (String rt : roleTypes) {
+                        try {
+                            roleTypeList.add(Integer.parseInt(rt.trim()));
+                        } catch (NumberFormatException e) {
+                            log.warn("无效的角色类型值：{}", rt);
+                        }
+                    }
+                    if (!roleTypeList.isEmpty()) {
+                        wrapper.in(User::getRoleType, roleTypeList);
+                    }
+                } else {
+                    // 单个roleType
+                    Integer roleType = Integer.parseInt(roleTypeStr);
+                    wrapper.eq(User::getRoleType, roleType);
+                }
             } catch (NumberFormatException e) {
                 log.warn("无效的角色类型参数：{}", params.get("roleType"));
             }
@@ -592,10 +611,19 @@ public class SystemServiceImpl implements SystemService {
         // 为每个用户的头像生成签名URL并缓存
         if (result.getRecords() != null && !result.getRecords().isEmpty()) {
             result.getRecords().forEach(user -> {
-                if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
-                    String signedAvatarUrl = resolveAvatarUrlWithCache(user.getAvatar(), user.getId(), 
-                        user.getRoleType() != null && user.getRoleType() == 2 ? "doctor" : "patient");
+                // 确保所有用户都有头像字段（即使为空也要处理）
+                String avatarUrl = user.getAvatar();
+                if (avatarUrl != null && !avatarUrl.isEmpty()) {
+                    String signedAvatarUrl = resolveAvatarUrlWithCache(avatarUrl, user.getId(), 
+                        user.getRoleType() != null && user.getRoleType() == 2 ? "doctor" : 
+                        user.getRoleType() != null && user.getRoleType() == 3 ? "admin" : "patient");
                     user.setAvatar(signedAvatarUrl);
+                } else {
+                    // 如果用户没有头像，设置默认头像
+                    String defaultAvatar = resolveAvatarUrlWithCache(null, user.getId(), 
+                        user.getRoleType() != null && user.getRoleType() == 2 ? "doctor" : 
+                        user.getRoleType() != null && user.getRoleType() == 3 ? "admin" : "patient");
+                    user.setAvatar(defaultAvatar);
                 }
             });
         }
@@ -660,29 +688,44 @@ public class SystemServiceImpl implements SystemService {
                 if (expireTime != null && expireTime > 0) {
                     // 缓存未过期，重置TTL（续期）
                     redisUtil.expire(cacheKey, CacheConstants.CACHE_OSS_SIGNED_URL_TTL_SECONDS, TimeUnit.SECONDS);
-                    log.debug("头像签名URL缓存命中，已续期: avatar={}, expireTime={}秒", sanitizedAvatar, expireTime);
                     return (String) cached;
                 } else {
                     // 缓存已过期或即将过期，删除旧缓存
                     redisUtil.delete(cacheKey);
-                    log.debug("头像签名URL缓存已过期，将重新生成: avatar={}", sanitizedAvatar);
                 }
             }
             
             // 缓存不存在或已过期，生成新的签名URL
             String signedUrl = ossService.generatePresignedUrl(sanitizedAvatar, avatarConfig.getTtlMinutes());
-            if (StringUtils.hasText(signedUrl)) {
+            // 检查是否成功生成签名URL（签名URL应该包含签名参数）
+            boolean isSignedUrl = StringUtils.hasText(signedUrl) && 
+                (signedUrl.contains("Signature=") || signedUrl.contains("OSSAccessKeyId=") || signedUrl.contains("Expires="));
+            
+            if (isSignedUrl) {
                 // 存入缓存，TTL设置为55分钟（略小于签名URL的60分钟有效期）
                 redisUtil.set(cacheKey, signedUrl, CacheConstants.CACHE_OSS_SIGNED_URL_TTL_SECONDS, TimeUnit.SECONDS);
-                log.debug("生成头像签名URL并缓存: avatar={}", sanitizedAvatar);
                 return signedUrl;
             } else {
-                log.warn("生成头像签名URL失败，返回原始URL: avatar={}", sanitizedAvatar);
-                return sanitizedAvatar;
+                // 生成签名URL失败，返回默认头像而不是原始URL（原始URL可能无法访问）
+                log.warn("生成头像签名URL失败，使用默认头像: avatar={}, signedUrl={}", sanitizedAvatar, signedUrl);
+                if ("doctor".equals(entityType) && entityId != null) {
+                    return avatarConfig.getDefaultDoctor() + "&seed=" + entityId;
+                }
+                if ("admin".equals(entityType) && entityId != null) {
+                    return avatarConfig.getDefaultAdmin() + "&seed=" + entityId;
+                }
+                return avatarConfig.getDefaultPatient() + (entityId != null ? "&seed=" + entityId : "");
             }
         } catch (Exception e) {
-            log.warn("处理头像签名URL失败: avatar={}, error={}", sanitizedAvatar, e.getMessage());
-            return sanitizedAvatar;
+            log.warn("处理头像签名URL失败，使用默认头像: avatar={}, error={}", sanitizedAvatar, e.getMessage());
+            // 异常时返回默认头像
+            if ("doctor".equals(entityType) && entityId != null) {
+                return avatarConfig.getDefaultDoctor() + "&seed=" + entityId;
+            }
+            if ("admin".equals(entityType) && entityId != null) {
+                return avatarConfig.getDefaultAdmin() + "&seed=" + entityId;
+            }
+            return avatarConfig.getDefaultPatient() + (entityId != null ? "&seed=" + entityId : "");
         }
     }
 

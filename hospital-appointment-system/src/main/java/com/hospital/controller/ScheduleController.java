@@ -195,7 +195,6 @@ public class ScheduleController {
             if (cached != null) {
                 @SuppressWarnings("unchecked")
                 IPage<Schedule> cachedPage = (IPage<Schedule>) cached;
-                log.info("从缓存获取排班列表: page={}, pageSize={}", page, pageSize);
                 return Result.success(cachedPage);
             }
         }

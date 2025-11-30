@@ -17,7 +17,7 @@ import com.hospital.entity.Doctor;
 import com.hospital.entity.User;
 import com.hospital.mapper.AppointmentMapper;
 import com.hospital.mapper.DoctorMapper;
-import com.hospital.mapper.DtoMapper;
+import com.hospital.converter.DtoMapper;
 import com.hospital.mapper.UserMapper;
 import com.hospital.config.OssConfig;
 import com.hospital.service.OssService;
@@ -249,7 +249,7 @@ public class UserServiceImpl implements UserService {
         user.setIdCard(request.getIdCard());
         user.setGender(request.getGender() != null ? request.getGender() : 0);
         user.setBirthDate(request.getBirthDate());
-        user.setRoleType(1); // 默认为患者角色
+        user.setRoleType(0); // 默认为用户角色，预约后才会变为患者(1)
         user.setStatus(1); // 默认启用
         // 设置默认头像（可以根据性别设置不同默认头像）
         user.setAvatar(getDefaultAvatar(user.getGender()));

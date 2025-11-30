@@ -113,7 +113,6 @@ public class HerbalRecipeServiceImpl implements HerbalRecipeService {
                             }
                             index++;
                         }
-                        log.info("从缓存获取推荐药膳");
                         return Result.success(cachedPage);
                     } catch (ClassCastException ignored) {}
                 }
@@ -186,7 +185,6 @@ public class HerbalRecipeServiceImpl implements HerbalRecipeService {
                                 recipe.setIsFavorited(favorite != null);
                             }
                         }
-                        log.info("从缓存获取全部药膳列表");
                         return Result.success(cachedPage);
                     } catch (ClassCastException ignored) {}
                 }
@@ -208,7 +206,6 @@ public class HerbalRecipeServiceImpl implements HerbalRecipeService {
                 redisUtil.set(cacheKey, result, 15, java.util.concurrent.TimeUnit.MINUTES);
             }
 
-            log.info("获取全部药膳列表，共{}条", result.getTotal());
             return Result.success(result);
         } catch (Exception e) {
             log.error("获取全部药膳列表失败", e);
@@ -257,7 +254,6 @@ public class HerbalRecipeServiceImpl implements HerbalRecipeService {
                                 recipe.setIsFavorited(favorite != null);
                             }
                         }
-                        log.info("从缓存获取药膳搜索结果");
                         return Result.success(cachedPage);
                     } catch (ClassCastException ignored) {}
                 }
@@ -309,7 +305,6 @@ public class HerbalRecipeServiceImpl implements HerbalRecipeService {
             HerbalRecipe recipe = null;
             if (cached instanceof HerbalRecipe) {
                 recipe = (HerbalRecipe) cached;
-                log.info("从缓存获取药膳详情: {}", recipeId);
             } else {
                 recipe = herbalRecipeMapper.selectById(recipeId);
                 if (recipe == null) {
@@ -332,7 +327,6 @@ public class HerbalRecipeServiceImpl implements HerbalRecipeService {
             // 补全食材备注信息
             enrichIngredientsWithNotes(recipe);
 
-            log.info("获取药膳详情: {}，用户ID：{}", recipeId, userId);
             return Result.success(recipe);
 
         } catch (Exception e) {
@@ -357,7 +351,6 @@ public class HerbalRecipeServiceImpl implements HerbalRecipeService {
                     @SuppressWarnings("unchecked")
                     List<HerbalRecipe> list = (List<HerbalRecipe>) cached;
                     recipes = list;
-                    log.info("从缓存获取热门药膳");
                 } catch (ClassCastException ignored) {}
             }
 
@@ -375,7 +368,6 @@ public class HerbalRecipeServiceImpl implements HerbalRecipeService {
                 }
             }
 
-            log.info("获取热门药膳，共{}条", recipes.size());
             return Result.success(recipes);
 
         } catch (Exception e) {
@@ -400,7 +392,6 @@ public class HerbalRecipeServiceImpl implements HerbalRecipeService {
                     @SuppressWarnings("unchecked")
                     List<HerbalRecipe> list = (List<HerbalRecipe>) cached;
                     recipes = list;
-                    log.info("从缓存获取时令药膳");
                 } catch (ClassCastException ignored) {}
             }
 
@@ -418,7 +409,6 @@ public class HerbalRecipeServiceImpl implements HerbalRecipeService {
                 }
             }
 
-            log.info("获取时令药膳：{}，共{}条", season, recipes.size());
             return Result.success(recipes);
 
         } catch (Exception e) {
@@ -507,7 +497,6 @@ public class HerbalRecipeServiceImpl implements HerbalRecipeService {
 
             // 注意：这里返回的是UserRecipeFavorite的分页，但包含了HerbalRecipe的字段
             // 实际使用时可能需要转换为HerbalRecipe类型
-            log.info("获取用户{}的收藏列表，共{}条", userId, favorites.getTotal());
             
             // 简化处理：直接返回（实际项目中可能需要类型转换）
             @SuppressWarnings("unchecked")
@@ -527,7 +516,6 @@ public class HerbalRecipeServiceImpl implements HerbalRecipeService {
     public Result<List<Ingredient>> getIngredientsByConstitution(String constitutionType) {
         try {
             List<Ingredient> ingredients = ingredientMapper.selectByConstitutionType(constitutionType);
-            log.info("获取体质{}的适用食材，共{}种", constitutionType, ingredients.size());
             return Result.success(ingredients);
 
         } catch (Exception e) {

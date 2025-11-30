@@ -56,13 +56,6 @@ public class DepartmentServiceImpl implements DepartmentService {
             // 查询中医分类列表
             List<Department> departments = departmentMapper.selectAllWithCategory();
 
-            // 🔍 调试日志：检查数据库查询结果
-            if (!departments.isEmpty()) {
-                Department first = departments.get(0);
-                log.info("🔍 调试 - 第一条记录: id={}, categoryName={}, createTime={}, updateTime={}",
-                    first.getId(), first.getCategoryName(), first.getCreateTime(), first.getUpdateTime());
-            }
-
             // 设置兼容字段
             departments.forEach(this::setCompatibilityFields);
             // 科室列表缓存（永久）

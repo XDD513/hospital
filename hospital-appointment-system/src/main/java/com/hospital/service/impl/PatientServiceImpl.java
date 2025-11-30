@@ -41,16 +41,49 @@ public class PatientServiceImpl extends ServiceImpl<PatientMapper, User> impleme
         log.info("获取今日患者列表，医生ID：{}", doctorId);
         String cacheKey = "hospital:doctor:patient:list:today:doctor:" + doctorId;
         Object cached = redisUtil.get(cacheKey);
-        if (cached instanceof List) {
+        List<Map<String, Object>> data;
+        
+        // 尝试从缓存读取，如果失败则清除缓存并重新查询
+        if (cached != null) {
             try {
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> list = (List<Map<String, Object>>) cached;
-                return list;
-            } catch (ClassCastException ignored) {}
+                if (cached instanceof List) {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> list = (List<Map<String, Object>>) cached;
+                    data = list;
+                } else {
+                    // 缓存数据格式不正确，清除缓存
+                    redisUtil.delete(cacheKey);
+                    data = patientMapper.selectTodayPatients(doctorId);
+                }
+            } catch (Exception e) {
+                // 反序列化失败，清除缓存并重新查询
+                log.warn("从Redis缓存读取今日患者列表失败，清除缓存并重新查询: doctorId={}, error={}", doctorId, e.getMessage());
+                redisUtil.delete(cacheKey);
+                data = patientMapper.selectTodayPatients(doctorId);
+            }
+        } else {
+            data = patientMapper.selectTodayPatients(doctorId);
         }
-        List<Map<String, Object>> data = patientMapper.selectTodayPatients(doctorId);
+        
+        // 为每个预约添加叫号状态
+        for (Map<String, Object> patient : data) {
+            Object appointmentIdObj = patient.get("appointmentId");
+            if (appointmentIdObj != null) {
+                Long appointmentId = Long.parseLong(appointmentIdObj.toString());
+                String callKey = "appointment:called:" + appointmentId;
+                Object called = redisUtil.get(callKey);
+                patient.put("isCalled", called != null && "true".equals(called.toString()));
+            } else {
+                patient.put("isCalled", false);
+            }
+        }
+        
         // 今日患者列表缓存 2 分钟
-        redisUtil.set(cacheKey, data, 2, TimeUnit.MINUTES);
+        try {
+            redisUtil.set(cacheKey, data, 2, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            log.warn("缓存今日患者列表失败，继续返回数据: doctorId={}, error={}", doctorId, e.getMessage());
+        }
         return data;
     }
 
