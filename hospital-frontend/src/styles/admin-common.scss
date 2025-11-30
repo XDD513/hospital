@@ -10,7 +10,12 @@
   box-shadow: $shadow-card;
   transition: $transition-normal;
   border: 1px solid $border-lighter;
-  overflow: hidden;
+  overflow: hidden; // 保持hidden以维持圆角效果
+  
+  // 但允许 card-body 中的筛选栏溢出
+  .card-body {
+    overflow-x: visible;
+  }
 
   &:hover {
     box-shadow: $shadow-card-hover;
@@ -391,30 +396,43 @@
   border-radius: $border-radius-small;
   border: 1px solid $border-extra-light;
 
-  .el-form {
+  :deep(.el-form) {
     margin-bottom: 0;
   }
 
-  .el-form-item {
+  :deep(.el-form--inline) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0;
+  }
+
+  :deep(.el-form-item) {
+    display: inline-flex;
+    align-items: center;
     margin-bottom: 0;
     margin-right: $spacing-medium;
+    vertical-align: middle;
 
     &:last-child {
       margin-right: 0;
     }
   }
 
-  // 确保 Element Plus 组件正确显示
+  :deep(.el-form-item__label) {
+    min-width: auto;
+    padding-right: 8px;
+    white-space: nowrap;
+  }
+
   :deep(.el-select) {
     min-width: 150px;
+    width: 150px;
   }
 
   :deep(.el-date-editor) {
-    width: auto;
-  }
-
-  :deep(.el-input__wrapper) {
-    background-color: $bg-white;
+    min-width: 240px;
+    width: 240px;
   }
 }
 
@@ -605,10 +623,36 @@
   }
 
   .admin-filter {
+    overflow-x: auto;
+    padding: $spacing-small;
+    
     .el-form {
+      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: stretch;
+      gap: $spacing-small;
+      
       .el-form-item {
         margin-bottom: $spacing-medium;
+        flex: 1 1 auto;
+        min-width: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
       }
+    }
+
+    :deep(.el-form-item__label) {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 8px;
+    }
+
+    :deep(.el-select),
+    :deep(.el-date-editor) {
+      width: 100% !important;
+      min-width: 100% !important;
     }
   }
 

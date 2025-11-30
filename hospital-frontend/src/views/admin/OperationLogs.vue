@@ -101,8 +101,11 @@
         </el-table>
 
         <!-- 分页 -->
-        <AdminPagination v-model:current-page="queryParams.page" v-model:page-size="queryParams.pageSize" :total="total"
-          @size-change="handlePageSizeChange" @current-change="handlePageChange" />
+        <div class="admin-pagination" v-if="total > 0">
+          <el-pagination v-model:current-page="queryParams.page" v-model:page-size="queryParams.pageSize" :total="total"
+            :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next" @size-change="handlePageSizeChange"
+            @current-change="handlePageChange" />
+        </div>
       </div>
 
       <!-- 日志详情弹窗 -->
@@ -149,7 +152,6 @@ import dayjs from 'dayjs'
 
 import { Search, Download } from '@element-plus/icons-vue'
 import { getOperationLogs, exportOperationLogs } from '@/api/system'
-import AdminPagination from '@/components/AdminPagination.vue'
 
 const loading = ref(false)
 const exportLoading = ref(false)
@@ -302,37 +304,5 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.pagination {
-  margin-top: 15px;
-  display: flex;
-  justify-content: center;
-}
-</style>
-
-<style scoped lang="scss">
-.operation-logs-container {
-  max-width: 1600px;
-  margin: 0 auto;
-
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    h2 {
-      margin: 0;
-      font-size: 20px;
-    }
-  }
-}
-</style>
-
-<style scoped lang="scss">
-@use '@/styles/admin-variables.scss' as *;
-@use '@/styles/admin-common.scss' as *;
-
-.operation-logs-container {
-  max-width: 1400px;
-  margin: 0 auto;
-}
+// 使用全局admin样式
 </style>

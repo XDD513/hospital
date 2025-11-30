@@ -85,5 +85,15 @@ export function deleteAppointment(id) {
   })
 }
 
+/**
+ * 叫号功能 - 给患者发送广播通知
+ */
+export function callPatient(appointmentId) {
+  return request({
+    url: `/appointment/call/${appointmentId}`,
+    method: 'post'
+  })
+}
+
 // 刷新缓存功能已迁移到 /api/cache.js
 // 请使用: import { refreshAppointmentCache } from '@/api/cache'

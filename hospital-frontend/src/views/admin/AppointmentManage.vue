@@ -6,7 +6,7 @@
           <el-icon>
             <Tickets />
           </el-icon>
-          预约管理
+          就诊记录
         </h2>
         <div class="header-actions">
           <div class="admin-search">
@@ -48,7 +48,7 @@
           </el-form>
 
           <!-- 预约列表 -->
-          <el-table :data="appointments" v-loading="loading" stripe border style="width: 100%">
+          <el-table :data="appointments" v-loading="loading" class="admin-table" stripe>
             <el-table-column type="index" label="序号" width="60" align="center" fixed="left"/>
             <el-table-column prop="id" label="订单号" width="160" align="center">
               <template #default="{ row }">
@@ -109,8 +109,11 @@
           </el-table>
 
           <!-- 分页 -->
-          <AdminPagination v-model:current-page="queryParams.page" v-model:page-size="queryParams.pageSize"
-            :total="total" @size-change="loadAppointments" @current-change="loadAppointments" />
+          <div class="admin-pagination" v-if="total > 0">
+            <el-pagination v-model:current-page="queryParams.page" v-model:page-size="queryParams.pageSize" :total="total"
+              :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next" @size-change="loadAppointments"
+              @current-change="loadAppointments" />
+          </div>
         </div>
 
         <!-- 详情弹窗 -->
@@ -154,7 +157,6 @@ import { ref, reactive, onMounted } from 'vue'
   import { getAppointmentList, cancelAppointment, updateAppointmentStatus, deleteAppointment } from '@/api/appointment'
   import { refreshAppointmentCache } from '@/api/cache'
   import dayjs from 'dayjs'
-  import AdminPagination from '@/components/AdminPagination.vue'
 
   const loading = ref(false)
   const detailVisible = ref(false)
@@ -329,20 +331,8 @@ import { ref, reactive, onMounted } from 'vue'
   })
 </script>
 
-  <style scoped lang="scss">
-  .pagination {
-    margin-top: 15px;
-    display: flex;
-    justify-content: center;
-  }
-</style>
-
-  <style scoped lang="scss">
-  @use '@/styles/admin-variables.scss' as *;
-  @use '@/styles/admin-common.scss' as *;
-
-  .appointment-manage-container {
-    max-width: 1400px;
-    margin: 0 auto;
-  }
+<style scoped lang="scss">
+.appointment-manage-container {
+  // 使用全局admin样式
+}
 </style>

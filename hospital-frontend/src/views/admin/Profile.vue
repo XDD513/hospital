@@ -61,9 +61,9 @@
             <h3>快捷操作</h3>
           </template>
           <div class="quick-actions">
-            <div class="action-item" @click="router.push('/admin/users')">
+            <div class="action-item" @click="router.push('/admin/patients')">
               <el-icon :size="40" color="#409eff"><UserFilled /></el-icon>
-              <span>用户管理</span>
+              <span>患者管理</span>
             </div>
             <div class="action-item" @click="router.push('/admin/appointments')">
               <el-icon :size="40" color="#67c23a"><Document /></el-icon>

@@ -6,7 +6,7 @@
           <el-icon>
             <User />
           </el-icon>
-          中医师管理
+          医生管理
         </h2>
         <div class="header-actions">
           <div class="admin-search">
@@ -24,12 +24,6 @@
             </el-icon>
             刷新
           </el-button>
-          <el-button type="danger" :disabled="selectedRows.length === 0" @click="handleBatchDelete">
-            <el-icon>
-              <Delete />
-            </el-icon>
-            批量删除
-          </el-button>
           <el-button type="primary" @click="showAddDialog">
             <el-icon>
               <Plus />
@@ -41,14 +35,26 @@
       <div class="card-body">
 
         <!-- 中医师列表 -->
-        <el-table :data="doctors" v-loading="loading" class="admin-table" stripe @selection-change="handleSelectionChange">
-          <el-table-column type="selection" width="55" align="center" fixed="left"/>
+        <el-table :data="doctors" v-loading="loading" class="admin-table" stripe>
           <el-table-column type="index" label="序号" width="70" align="center" fixed="left" />
           
-          <!-- 基本信息 -->
-          <el-table-column prop="doctorName" label="中医师姓名" min-width="140" align="left" fixed="left">
+          <!-- 头像列 -->
+          <el-table-column label="头像" width="80" align="center" fixed="left">
             <template #default="{ row }">
-              <div style="font-weight: 600; color: #303133;">{{ row.doctorName || '未设置' }}</div>
+              <el-avatar 
+                :size="50" 
+                :src="getAvatarUrl(row)" 
+                @error="handleAvatarError($event, row)"
+              >
+                <el-icon><User /></el-icon>
+              </el-avatar>
+            </template>
+          </el-table-column>
+          
+          <!-- 基本信息 -->
+          <el-table-column prop="doctorName" label="中医师姓名" min-width="140" align="center" fixed="left">
+            <template #default="{ row }">
+              <div style="font-weight: 600; color: #303133; text-align: center;">{{ row.doctorName || '未设置' }}</div>
             </template>
           </el-table-column>
           
@@ -100,9 +106,21 @@
           </el-table-column>
           
           <!-- 详细信息 -->
-          <el-table-column prop="specialty" label="专长" min-width="200" show-overflow-tooltip align="left">
+          <el-table-column prop="specialty" label="专长" min-width="200" show-overflow-tooltip align="center">
             <template #default="{ row }">
-              <span style="color: #606266;">{{ row.specialty || '暂无专长介绍' }}</span>
+              <span style="color: #606266; text-align: center;">{{ row.specialty || '暂无专长介绍' }}</span>
+            </template>
+          </el-table-column>
+          
+          <!-- 是否推荐首页 -->
+          <el-table-column label="推荐首页" width="100" align="center">
+            <template #default="{ row }">
+              <el-switch
+                v-model="row.isRecommended"
+                :active-value="true"
+                :inactive-value="false"
+                @change="toggleRecommended(row)"
+              />
             </template>
           </el-table-column>
           
@@ -148,9 +166,10 @@
         </el-table>
 
         <!-- 分页 -->
-        <div class="admin-pagination">
-          <AdminPagination v-model:current-page="queryParams.page" v-model:page-size="queryParams.pageSize"
-            :total="total" @size-change="loadDoctors" @current-change="loadDoctors" />
+        <div class="admin-pagination" v-if="total > 0">
+          <el-pagination v-model:current-page="queryParams.page" v-model:page-size="queryParams.pageSize" :total="total"
+            :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next" @size-change="loadDoctors"
+            @current-change="loadDoctors" />
         </div>
       </div>
     </div>
@@ -334,11 +353,10 @@
 import message from '@/plugins/message'
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessageBox } from 'element-plus'
-import { Refresh, Delete } from '@element-plus/icons-vue'
+import { Refresh, Delete, User, Search, Plus, Switch, View, Edit } from '@element-plus/icons-vue'
 import { getDoctorList, addDoctor, updateDoctor, deleteDoctor as deleteDoctorApi, updateDoctorStatus } from '@/api/doctor'
 import { refreshDoctorCache } from '@/api/cache'
 import { getDepartmentList } from '@/api/department'
-import AdminPagination from '@/components/AdminPagination.vue'
 import { useFormValidation } from '@/composables/useFormValidation'
 
 const loading = ref(false)
@@ -392,7 +410,6 @@ const doctors = ref([])
 const departments = ref([])
 const selectedDoctor = ref(null)
 const total = ref(0)
-const selectedRows = ref([])
 
 // 加载医生列表
 const loadDoctors = async () => {
@@ -410,7 +427,12 @@ const loadDoctors = async () => {
       )
     }
 
-    doctors.value = filteredDoctors
+    // 确保每个医生都有头像和推荐字段
+    doctors.value = filteredDoctors.map(doctor => ({
+      ...doctor,
+      avatar: doctor.avatar || '',
+      isRecommended: doctor.isRecommended !== undefined ? doctor.isRecommended : false
+    }))
     total.value = filteredDoctors.length
   } catch (error) {
 
@@ -626,6 +648,32 @@ const getGenderText = (gender) => {
   return textMap[gender] || '未知'
 }
 
+// 获取默认头像
+const getDefaultAvatar = (row) => {
+  if (row.avatar) return row.avatar
+  // 使用医生ID生成默认头像
+  const seed = row.id || row.userId || 'doctor'
+  return `https://api.dicebear.com/7.x/thumbs/svg?seed=${seed}`
+}
+
+// 获取头像URL（优先使用row.avatar，如果为空则使用默认头像）
+const getAvatarUrl = (row) => {
+  if (row.avatar && row.avatar.trim() !== '') {
+    return row.avatar
+  }
+  return getDefaultAvatar(row)
+}
+
+// 处理头像加载错误
+const handleAvatarError = (event, row) => {
+  if (!event?.target) return
+  const defaultAvatar = getDefaultAvatar(row)
+  // 如果当前src不是默认头像，则替换为默认头像
+  if (event.target.src !== defaultAvatar) {
+    event.target.src = defaultAvatar
+  }
+}
+
 // 获取状态类型
 const getStatusType = (status) => {
   const typeMap = { 0: 'info', 1: 'success' }
@@ -653,54 +701,23 @@ const handleRefresh = async () => {
   }
 }
 
-// 处理表格选择变化
-const handleSelectionChange = (selection) => {
-  selectedRows.value = selection
-}
-
-// 批量删除
-const handleBatchDelete = async () => {
-  if (selectedRows.value.length === 0) {
-    message.warning('请选择要删除的中医师')
-    return
-  }
-
+// 切换推荐首页状态
+const toggleRecommended = async (row) => {
   try {
-    await ElMessageBox.confirm(
-      `确定要删除选中的 ${selectedRows.value.length} 个中医师吗？删除后将同时删除关联的用户账号，此操作不可恢复。`,
-      '批量删除确认',
-      {
-        confirmButtonText: '确定删除',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-
-    loading.value = true
-    const deletePromises = selectedRows.value.map(row => {
-      if (!row.id || row.id === 0) {
-        return Promise.reject(new Error(`中医师 ${row.doctorName || row.realName} ID无效`))
-      }
-      return deleteDoctorApi(row.id)
-    })
-    await Promise.all(deletePromises)
-    
-    message.success(`成功删除 ${selectedRows.value.length} 个中医师`)
-    selectedRows.value = []
+    // TODO: 调用API更新推荐状态
+    // await updateDoctorRecommended(row.id, row.isRecommended)
+    message.success(row.isRecommended ? '已推荐到首页' : '已取消推荐')
     
     // 清除缓存并重新加载数据
     try {
       await refreshDoctorCache()
     } catch (e) {
-
+      // 静默失败
     }
-    await loadDoctors()
   } catch (error) {
-    if (error !== 'cancel') {
-      message.error(error.message || '批量删除失败')
-    }
-  } finally {
-    loading.value = false
+    // 如果失败，恢复原状态
+    row.isRecommended = !row.isRecommended
+    message.error('更新推荐状态失败')
   }
 }
 
@@ -727,7 +744,34 @@ onMounted(async () => {
 @use '@/styles/admin-common.scss' as *;
 
 .doctor-manage-container {
-  max-width: 1400px;
-  margin: 0 auto;
+  // 使用全局admin样式
+  
+  // 确保表格所有单元格内容居中
+  :deep(.el-table) {
+    .el-table__cell {
+      text-align: center;
+      
+      .cell {
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+    
+    // 表头也居中
+    .el-table__header-wrapper {
+      .el-table__header {
+        th {
+          text-align: center;
+          
+          .cell {
+            text-align: center;
+            justify-content: center;
+          }
+        }
+      }
+    }
+  }
 }
 </style>

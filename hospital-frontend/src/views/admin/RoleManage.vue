@@ -1,12 +1,12 @@
-﻿<template>
-  <div class="user-manage-container">
+<template>
+  <div class="role-manage-container">
     <div class="admin-card">
       <div class="card-header">
         <h2>
           <el-icon>
             <UserFilled />
           </el-icon>
-          患者管理
+          角色管理
         </h2>
         <div class="header-actions">
           <div class="admin-search">
@@ -98,7 +98,7 @@
           </el-table-column>
           <el-table-column prop="roleType" label="角色" width="110" align="center">
             <template #default="{ row }">
-              <span :class="['status-tag', getRoleType(row.roleType)]">
+              <span :class="['status-tag', getRoleTypeClass(row.roleType)]">
                 <span class="status-dot"></span>
                 {{ getRoleText(row.roleType) }}
               </span>
@@ -209,10 +209,11 @@
         </el-row>
 
         <el-form-item label="角色类型" prop="roleType">
-          <el-select v-model="form.roleType" placeholder="选择角色" style="width: 100%" disabled>
-            <el-option label="患者" :value="1" />
+          <el-select v-model="form.roleType" placeholder="选择角色" style="width: 100%">
+            <el-option label="用户" :value="0" />
+            <el-option label="管理员" :value="3" />
           </el-select>
-          <div style="font-size: 12px; color: #909399; margin-top: 4px;">患者管理页面仅支持添加患者用户</div>
+          <div style="font-size: 12px; color: #909399; margin-top: 4px;">角色管理页面支持添加用户和管理员</div>
         </el-form-item>
 
         <el-form-item label="身份证号">
@@ -249,7 +250,7 @@
         <el-descriptions-item label="身份证号">{{ selectedUser.idCard || '未设置' }}</el-descriptions-item>
         <el-descriptions-item label="地址" :span="2">{{ selectedUser.address || '未设置' }}</el-descriptions-item>
         <el-descriptions-item label="角色类型">
-          <el-tag :type="getRoleType(selectedUser.roleType)">
+          <el-tag :type="getRoleTypeClass(selectedUser.roleType)">
             {{ getRoleText(selectedUser.roleType) }}
           </el-tag>
         </el-descriptions-item>
@@ -274,8 +275,8 @@
 import message from '@/plugins/message'
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessageBox } from 'element-plus'
-import { Search, Plus, Refresh, Delete, UserFilled } from '@element-plus/icons-vue'
-import { getUserList, addUser, updateUser, deleteUser, resetUserPassword, updateUserStatus, forceLogout } from '@/api/system'
+import { Search, Plus, Refresh, UserFilled, View, Edit, Switch, Key, SwitchButton } from '@element-plus/icons-vue'
+import { getUserList, addUser, updateUser, resetUserPassword, updateUserStatus, forceLogout } from '@/api/system'
 import { refreshUserCache } from '@/api/cache'
 import { getProvinceList, getCityList, getCountyList } from '@/api/area'
 import { useFormValidation } from '@/composables/useFormValidation'
@@ -292,11 +293,11 @@ const formRef = ref(null)
 // 创建字段失焦处理函数
 const { handleFieldBlur } = useFormValidation(formRef)
 
-// 查询参数 - 固定 roleType 为 1（患者）
+// 查询参数 - 固定 roleType 为 0 和 3（用户和管理员）
 const queryParams = reactive({
   page: 1,
   pageSize: 10,
-  roleType: 1, // 固定为患者
+  roleType: '0,3', // 固定为用户(0)和管理员(3)
   status: null
 })
 
@@ -313,7 +314,7 @@ const form = reactive({
   email: '',
   gender: 0,
   birthday: '',
-  roleType: 1,
+  roleType: 0, // 默认为用户，可选择管理员(3)
   status: 1,
   idCard: '',
   region: [], // 省市区级联选择 [provinceId, cityId, countyId]
@@ -451,7 +452,6 @@ const loadUsers = async () => {
       total.value = apiTotal > 0 ? apiTotal : (Array.isArray(res.data?.records) ? res.data.records.length : 0)
     }
   } catch (error) {
-
     message.error('加载用户列表失败')
   } finally {
     loading.value = false
@@ -495,7 +495,7 @@ const toggleStatus = async (row) => {
       try {
         await refreshUserCache()
       } catch (e) {
-
+        // 静默失败
       }
       
       // 立即更新本地数据，确保UI立即响应
@@ -509,7 +509,6 @@ const toggleStatus = async (row) => {
     }
   } catch (error) {
     if (error !== 'cancel') {
-
       message.error(error.response?.data?.message || `${action}失败`)
     }
   } finally {
@@ -538,14 +537,13 @@ const resetPassword = async (row) => {
         await refreshUserCache()
         await loadUsers()
       } catch (e) {
-
+        // 静默失败
       }
     } else {
       message.error(res.message || '密码重置失败')
     }
   } catch (error) {
     if (error !== 'cancel') {
-
       message.error('密码重置失败')
     }
   }
@@ -572,7 +570,7 @@ const forceOffline = async (row) => {
       try {
         await refreshUserCache()
       } catch (e) {
-
+        // 静默失败
       }
       await loadUsers()
     } else {
@@ -580,7 +578,6 @@ const forceOffline = async (row) => {
     }
   } catch (error) {
     if (error !== 'cancel') {
-
       message.error(error.response?.data?.message || '强制下线失败')
     }
   } finally {
@@ -594,12 +591,13 @@ const getGenderText = (gender) => {
   return textMap[gender] || '未知'
 }
 
-// 获取角色类型
-const getRoleType = (roleType) => {
+// 获取角色类型样式类
+const getRoleTypeClass = (roleType) => {
   const typeMap = {
-    '1': 'warning',
-    '2': 'success',
-    '3': 'danger'
+    0: 'info',      // 用户
+    1: 'warning',   // 患者
+    2: 'success',   // 医生
+    3: 'danger'     // 管理员
   }
   return typeMap[roleType] || ''
 }
@@ -607,9 +605,10 @@ const getRoleType = (roleType) => {
 // 获取角色文本
 const getRoleText = (roleType) => {
   const textMap = {
-    '1': '患者',
-    '2': '医生',
-    '3': '管理员'
+    0: '用户',
+    1: '患者',
+    2: '医生',
+    3: '管理员'
   }
   return textMap[roleType] || '未知'
 }
@@ -618,7 +617,11 @@ const getRoleText = (roleType) => {
 const getDefaultAvatar = (row) => {
   if (row.avatar) return row.avatar
   // 使用用户ID生成默认头像
-  const seed = row.id || 'patient'
+  const seed = row.id || 'user'
+  const roleType = row.roleType
+  if (roleType === 3) {
+    return `https://api.dicebear.com/7.x/shapes/svg?seed=${seed}`
+  }
   return `https://api.dicebear.com/7.x/thumbs/svg?seed=${seed}`
 }
 
@@ -780,7 +783,7 @@ const resetForm = () => {
     email: '',
     gender: 0,
     birthday: '',
-    roleType: 1, // 固定为患者
+    roleType: 0, // 默认为用户，可选择管理员(3)
     status: 1,
     idCard: '',
     region: [],
@@ -882,11 +885,10 @@ const saveUser = async () => {
       try {
         await refreshUserCache()
       } catch (e) {
-
+        // 静默失败
       }
       await loadUsers()
     } catch (error) {
-
       message.error(error.response?.data?.message || '保存失败')
     }
   })
@@ -900,13 +902,11 @@ const handleRefresh = async () => {
     await loadUsers()
     message.success('刷新成功')
   } catch (error) {
-
     message.error('刷新失败')
   } finally {
     loading.value = false
   }
 }
-
 
 onMounted(async () => {
   // 先加载数据，确保页面快速显示
@@ -918,7 +918,6 @@ onMounted(async () => {
       await refreshUserCache()
       await loadUsers()
     } catch (error) {
-
       // 静默失败，不影响用户体验
     }
   }, 100)
@@ -926,5 +925,5 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-// 使用全局admin样式
+  // 使用全局admin样式
 </style>
