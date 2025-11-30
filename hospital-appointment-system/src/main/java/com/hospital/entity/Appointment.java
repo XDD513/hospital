@@ -116,10 +116,22 @@ public class Appointment implements Serializable {
     private String status;
 
     /**
+     * 预约金额（挂号费）
+     */
+    @TableField("consultation_fee")
+    private BigDecimal consultationFee;
+
+    /**
      * 取消原因
      */
     @TableField("cancel_reason")
     private String cancelReason;
+
+    /**
+     * 备注
+     */
+    @TableField("note")
+    private String note;
 
     /**
      * 创建时间
@@ -167,11 +179,5 @@ public class Appointment implements Serializable {
      */
     @TableField(exist = false)
     private String deptName;
-    
-    /**
-     * 挂号费（关联查询）
-     */
-    @TableField(exist = false)
-    private BigDecimal consultationFee;
 }
 
